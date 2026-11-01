@@ -190,7 +190,3 @@ export function DashboardPage() {
         Tip: use <span className="font-medium">Simulate Gate Scan</span> to walk through the check-in workflow and the
         denial scenarios (expired, revoked, unknown QR, inactive employee, unauthorized gate).
       </p>
-      <Button asChild variant="ghost" className="hidden" />
-    </div>
-  );
-}
