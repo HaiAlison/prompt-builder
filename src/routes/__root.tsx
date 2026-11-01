@@ -140,12 +140,9 @@ function RootComponent() {
       <AppStateProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <Toaster position="top-right" richColors closeButton />
       </AppStateProvider>
     </QueryClientProvider>
   );
 }
 
-// Sonner toasts are mounted once for the whole app.
-export function AppToaster() {
-  return <Toaster position="top-right" richColors closeButton />;
-}
