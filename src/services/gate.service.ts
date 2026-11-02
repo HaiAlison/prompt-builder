@@ -1,4 +1,10 @@
-import type { AttendanceTransaction, FactoryFilter, GateStation, GateStatus, GateType } from "@/types";
+import type {
+  AttendanceTransaction,
+  FactoryFilter,
+  GateStation,
+  GateStatus,
+  GateType,
+} from "@/types";
 import { GATES, GATE_BY_ID } from "@/mocks/gates";
 import { TRANSACTIONS } from "@/mocks/attendance";
 import { notifyDataChanged } from "./bus";
@@ -26,11 +32,20 @@ export const gateService = {
   async list(params: GateListParams = {}): Promise<GateStation[]> {
     const q = params.q?.trim().toLowerCase();
     let rows = GATES;
-    if (params.factoryId && params.factoryId !== "ALL") rows = rows.filter((g) => g.factoryId === params.factoryId);
+    if (params.factoryId && params.factoryId !== "ALL")
+      rows = rows.filter((g) => g.factoryId === params.factoryId);
     if (params.status && params.status !== "ALL") {
-      rows = rows.filter((g) => g.controllerStatus === params.status || g.scannerStatus === params.status);
+      rows = rows.filter(
+        (g) => g.controllerStatus === params.status || g.scannerStatus === params.status,
+      );
     }
-    if (q) rows = rows.filter((g) => g.id.toLowerCase().includes(q) || g.name.toLowerCase().includes(q) || g.location.toLowerCase().includes(q));
+    if (q)
+      rows = rows.filter(
+        (g) =>
+          g.id.toLowerCase().includes(q) ||
+          g.name.toLowerCase().includes(q) ||
+          g.location.toLowerCase().includes(q),
+      );
     return delay(rows);
   },
 
@@ -43,15 +58,22 @@ export const gateService = {
     for (let i = 6; i >= 0; i--) {
       const d = new Date(now.getTime() - i * 86_400_000).toISOString().slice(0, 10);
       const dayTx = TRANSACTIONS.filter((t) => t.gateId === id && dateKey(t.timestamp) === d);
-      dailyStats.push({ date: d, transactions: dayTx.length, denied: dayTx.filter((t) => t.status === "DENIED").length });
+      dailyStats.push({
+        date: d,
+        transactions: dayTx.length,
+        denied: dayTx.filter((t) => t.status === "DENIED").length,
+      });
     }
-    return delay({
-      gate,
-      recentEvents: events,
-      dailyStats,
-      onlineScanners: GATES.filter((g) => g.controllerStatus === "ONLINE").length,
-      totalScanners: GATES.length,
-    }, 110);
+    return delay(
+      {
+        gate,
+        recentEvents: events,
+        dailyStats,
+        onlineScanners: GATES.filter((g) => g.controllerStatus === "ONLINE").length,
+        totalScanners: GATES.length,
+      },
+      110,
+    );
   },
 
   async create(input: Omit<GateStation, "id" | "lastHeartbeat">): Promise<GateStation> {

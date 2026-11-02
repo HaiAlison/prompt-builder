@@ -22,11 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { ModuleKey } from "@/types";
 import { useAppState } from "@/store/app-state";
 import { ROLE_BY_NAME } from "@/mocks/users";
@@ -75,7 +71,10 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-3 py-4">
-        <Link to="/dashboard" className="flex items-center gap-2.5 overflow-hidden rounded-md px-1 py-0.5">
+        <Link
+          to="/dashboard"
+          className="flex items-center gap-2.5 overflow-hidden rounded-md px-1 py-0.5"
+        >
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
             <Building2 className="h-5 w-5" />
           </span>
@@ -105,7 +104,11 @@ export function AppSidebar() {
                     <SidebarMenu>
                       {items.map((item) => (
                         <SidebarMenuItem key={item.module}>
-                          <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive(item.url)}
+                            tooltip={item.title}
+                          >
                             <Link to={item.url}>
                               <item.icon className="h-4 w-4 shrink-0" />
                               <span>{item.title}</span>

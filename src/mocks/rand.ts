@@ -49,3 +49,9 @@ export function utcAsLocal(
 ): string {
   return new Date(Date.UTC(year, month - 1, day, hours, minutes, 0)).toISOString();
 }
+
+export function seededRngFor(key: string): Rng {
+  let seed = 0;
+  for (const c of key) seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
+  return mulberry32(seed);
+}

@@ -163,17 +163,28 @@ export function DataTable<T>({
               </SelectContent>
             </Select>
             <span>
-              {(safePage - 1) * size + 1}–{Math.min(safePage * size, sorted.length)} of {sorted.length}
+              {(safePage - 1) * size + 1}–{Math.min(safePage * size, sorted.length)} of{" "}
+              {sorted.length}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => setPage((p) => p - 1)}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               <ChevronLeft className="h-4 w-4" /> Prev
             </Button>
             <span>
               Page {safePage} of {totalPages}
             </span>
-            <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

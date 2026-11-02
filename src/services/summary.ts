@@ -1,6 +1,11 @@
 import type { AttendanceTransaction, AttendanceStatus, DailySummary, FactoryFilter } from "@/types";
 import { TRANSACTIONS, nowSim } from "@/mocks/attendance";
-import { isAbsentThatDay, seededRngFor, SHIFT_START_MINUTES, LATE_THRESHOLD_MINUTES } from "@/mocks/employees";
+import {
+  isAbsentThatDay,
+  seededRngFor,
+  SHIFT_START_MINUTES,
+  LATE_THRESHOLD_MINUTES,
+} from "@/mocks/employees";
 import { EMPLOYEE_BY_ID, EMPLOYEES } from "@/mocks/data";
 import { dateKey } from "@/utils/format";
 
@@ -8,7 +13,10 @@ import { dateKey } from "@/utils/format";
  * Derives daily summaries (one row per employee/day) from the raw gate
  * transactions — the same derivation the backend will run.
  */
-export function buildDailySummaries(date: string, factoryFilter: FactoryFilter = "ALL"): DailySummary[] {
+export function buildDailySummaries(
+  date: string,
+  factoryFilter: FactoryFilter = "ALL",
+): DailySummary[] {
   const byEmp = new Map<string, AttendanceTransaction[]>();
   for (const tx of TRANSACTIONS) {
     if (dateKey(tx.timestamp) !== date) continue;
@@ -22,16 +30,23 @@ export function buildDailySummaries(date: string, factoryFilter: FactoryFilter =
     if (emp.employmentStatus !== "ACTIVE" && emp.employmentStatus !== "PROBATION") continue;
     if (factoryFilter !== "ALL" && emp.factoryId !== factoryFilter) continue;
     const txs = byEmp.get(emp.id) ?? [];
-    const ins = txs.filter((t) => t.eventType === "CHECK_IN" && t.status !== "DENIED" && t.status !== "FAILED").map((t) => t.timestamp).sort();
-    const outs = txs.filter((t) => t.eventType === "CHECK_OUT" && t.status !== "DENIED" && t.status !== "FAILED").map((t) => t.timestamp).sort();
+    const ins = txs
+      .filter((t) => t.eventType === "CHECK_IN" && t.status !== "DENIED" && t.status !== "FAILED")
+      .map((t) => t.timestamp)
+      .sort();
+    const outs = txs
+      .filter((t) => t.eventType === "CHECK_OUT" && t.status !== "DENIED" && t.status !== "FAILED")
+      .map((t) => t.timestamp)
+      .sort();
     const firstCheckIn = ins[0] ?? null;
     const lastCheckOut = outs[outs.length - 1] ?? null;
     const lateMinutes = firstCheckIn
       ? Math.max(0, minutesOfDay(firstCheckIn) - (SHIFT_START_MINUTES + LATE_THRESHOLD_MINUTES))
       : 0;
-    const workedMinutes = firstCheckIn && lastCheckOut
-      ? Math.max(0, minutesOfDay(lastCheckOut) - minutesOfDay(firstCheckIn))
-      : 0;
+    const workedMinutes =
+      firstCheckIn && lastCheckOut
+        ? Math.max(0, minutesOfDay(lastCheckOut) - minutesOfDay(firstCheckIn))
+        : 0;
     let status: AttendanceStatus;
     if (isOnLeaveDaily(emp.id, date)) status = "ON_LEAVE";
     else if (!firstCheckIn) status = isAbsentThatDay(emp.id, date) ? "ABSENT" : "ABSENT";
@@ -78,7 +93,10 @@ export function getEmployeeDailySummaries(employeeId: string, days: number): Dai
 }
 
 /** Small deterministic helper reused by reports. */
-export function seededDayPresent(employeeId: string, date: string): { present: boolean; late: boolean } {
+export function seededDayPresent(
+  employeeId: string,
+  date: string,
+): { present: boolean; late: boolean } {
   const rng = seededRngFor(employeeId + date + "rep");
   const present = rng() > 0.06;
   return { present, late: present && rng() < 0.18 };

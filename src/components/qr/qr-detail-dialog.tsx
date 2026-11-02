@@ -15,7 +15,15 @@ import { downloadQrPng } from "@/utils/qr";
 import { formatDate, formatDateTime } from "@/utils/format";
 import type { QrCode } from "@/types";
 
-export function QrDetailDialog({ code, open, onOpenChange }: { code: QrCode | null; open: boolean; onOpenChange: (o: boolean) => void }) {
+export function QrDetailDialog({
+  code,
+  open,
+  onOpenChange,
+}: {
+  code: QrCode | null;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [downloading, setDownloading] = useState(false);
 
@@ -52,10 +60,15 @@ export function QrDetailDialog({ code, open, onOpenChange }: { code: QrCode | nu
               <Detail label="Status" value={<QrBadge status={code.status} />} />
               <Detail label="Created" value={formatDate(code.createdAt)} />
               <Detail label="Expires" value={formatDate(code.expiresAt)} />
-              <Detail label="Last used" value={code.lastUsedAt ? formatDateTime(code.lastUsedAt) : "Never"} />
+              <Detail
+                label="Last used"
+                value={code.lastUsedAt ? formatDateTime(code.lastUsedAt) : "Never"}
+              />
             </div>
             <div className="w-full rounded-md bg-muted/60 p-2">
-              <p className="text-xs text-muted-foreground">Payload (opaque token — safe to share with scanners)</p>
+              <p className="text-xs text-muted-foreground">
+                Payload (opaque token — safe to share with scanners)
+              </p>
               <p className="break-all font-mono text-xs">{code.payload}</p>
             </div>
             <Button variant="outline" className="w-full" onClick={download} disabled={downloading}>

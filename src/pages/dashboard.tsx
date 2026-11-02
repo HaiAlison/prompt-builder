@@ -1,11 +1,5 @@
 import { Building2, UserCheck, UserX, Users, LogIn, LogOut, ShieldX } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCard } from "@/components/common/kpi-card";
 
 import { PageHeader } from "@/components/common/filter-select";
@@ -36,10 +30,14 @@ const DIST_COLORS = ["var(--chart-2)", "var(--chart-4)", "var(--chart-5)", "var(
 export function DashboardPage() {
   const { factoryFilter, version } = useAppState();
   const isClient = useIsClient();
-  const { data, loading } = useAsync(() => attendanceService.getDashboard(factoryFilter), [factoryFilter, version]);
+  const { data, loading } = useAsync(
+    () => attendanceService.getDashboard(factoryFilter),
+    [factoryFilter, version],
+  );
 
   const kpis = data?.kpis;
-  const scopeLabel = factoryFilter === "ALL" ? "All factories" : factoryFilter === "BD" ? "Binh Duong" : "Long An";
+  const scopeLabel =
+    factoryFilter === "ALL" ? "All factories" : factoryFilter === "BD" ? "Binh Duong" : "Long An";
 
   return (
     <div className="flex flex-col gap-5">
@@ -50,13 +48,52 @@ export function DashboardPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
-        <KpiCard icon={Users} label="Total Employees" value={formatNumber(kpis?.totalEmployees ?? 0)} loading={loading} />
-        <KpiCard icon={UserCheck} label="Present Today" value={formatNumber(kpis?.presentToday ?? 0)} tone="success" loading={loading} />
-        <KpiCard icon={UserX} label="Absent Today" value={formatNumber(kpis?.absentToday ?? 0)} tone="destructive" loading={loading} />
-        <KpiCard icon={Building2} label="Currently Inside" value={formatNumber(kpis?.insideNow ?? 0)} tone="info" loading={loading} />
-        <KpiCard icon={LogIn} label="Check-ins Today" value={formatNumber(kpis?.checkInsToday ?? 0)} loading={loading} />
-        <KpiCard icon={LogOut} label="Check-outs Today" value={formatNumber(kpis?.checkOutsToday ?? 0)} loading={loading} />
-        <KpiCard icon={ShieldX} label="Access Denied" value={formatNumber(kpis?.deniedToday ?? 0)} tone="warning" loading={loading} />
+        <KpiCard
+          icon={Users}
+          label="Total Employees"
+          value={formatNumber(kpis?.totalEmployees ?? 0)}
+          loading={loading}
+        />
+        <KpiCard
+          icon={UserCheck}
+          label="Present Today"
+          value={formatNumber(kpis?.presentToday ?? 0)}
+          tone="success"
+          loading={loading}
+        />
+        <KpiCard
+          icon={UserX}
+          label="Absent Today"
+          value={formatNumber(kpis?.absentToday ?? 0)}
+          tone="destructive"
+          loading={loading}
+        />
+        <KpiCard
+          icon={Building2}
+          label="Currently Inside"
+          value={formatNumber(kpis?.insideNow ?? 0)}
+          tone="info"
+          loading={loading}
+        />
+        <KpiCard
+          icon={LogIn}
+          label="Check-ins Today"
+          value={formatNumber(kpis?.checkInsToday ?? 0)}
+          loading={loading}
+        />
+        <KpiCard
+          icon={LogOut}
+          label="Check-outs Today"
+          value={formatNumber(kpis?.checkOutsToday ?? 0)}
+          loading={loading}
+        />
+        <KpiCard
+          icon={ShieldX}
+          label="Access Denied"
+          value={formatNumber(kpis?.deniedToday ?? 0)}
+          tone="warning"
+          loading={loading}
+        />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -77,13 +114,36 @@ export function DashboardPage() {
                     axisLine={false}
                     tickLine={false}
                   />
-                  <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
                   <Tooltip
-                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                    contentStyle={{
+                      background: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Line type="monotone" dataKey="checkIns" name="Check-ins" stroke="var(--chart-2)" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="checkOuts" name="Check-outs" stroke="var(--chart-1)" strokeWidth={2} dot={false} />
+                  <Line
+                    type="monotone"
+                    dataKey="checkIns"
+                    name="Check-ins"
+                    stroke="var(--chart-2)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="checkOuts"
+                    name="Check-outs"
+                    stroke="var(--chart-1)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             )}
@@ -113,7 +173,12 @@ export function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                    contentStyle={{
+                      background: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
                   />
                   <Legend wrapperStyle={{ fontSize: 12 }} />
                 </PieChart>
@@ -132,14 +197,39 @@ export function DashboardPage() {
           <CardContent className="h-64">
             {isClient && data && (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.factoryComparison} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
+                <BarChart
+                  data={data.factoryComparison}
+                  margin={{ top: 4, right: 8, bottom: 0, left: -18 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="factoryName" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-                  <YAxis unit="%" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                  <XAxis
+                    dataKey="factoryName"
+                    tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
                   />
-                  <Bar dataKey="attendanceRate" name="Attendance rate" fill="var(--chart-2)" radius={[6, 6, 0, 0]} maxBarSize={64} />
+                  <YAxis
+                    unit="%"
+                    tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
+                    domain={[0, 100]}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      background: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                  />
+                  <Bar
+                    dataKey="attendanceRate"
+                    name="Attendance rate"
+                    fill="var(--chart-2)"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={64}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -165,7 +255,9 @@ export function DashboardPage() {
           <CardContent>
             <div className="divide-y">
               {loading &&
-                Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-9 animate-pulse rounded bg-muted/70" />)}
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="h-9 animate-pulse rounded bg-muted/70" />
+                ))}
               {data?.recentEvents.map((tx) => (
                 <div key={tx.id} className="flex items-center gap-3 py-2 text-sm">
                   <EventTypeBadge type={tx.eventType} />
@@ -173,13 +265,19 @@ export function DashboardPage() {
                     <span className="font-medium">{tx.employeeName}</span>
                     <span className="ml-2 text-xs text-muted-foreground">{tx.employeeId}</span>
                   </span>
-                  <span className="hidden max-w-[180px] truncate text-xs text-muted-foreground md:block">{tx.gateName}</span>
-                  <span className="hidden text-xs text-muted-foreground lg:block">{formatDateTime(tx.timestamp)}</span>
+                  <span className="hidden max-w-[180px] truncate text-xs text-muted-foreground md:block">
+                    {tx.gateName}
+                  </span>
+                  <span className="hidden text-xs text-muted-foreground lg:block">
+                    {formatDateTime(tx.timestamp)}
+                  </span>
                   <TransactionBadge status={tx.status} />
                 </div>
               ))}
               {!loading && data && data.recentEvents.length === 0 && (
-                <p className="py-6 text-center text-sm text-muted-foreground">No access events today yet.</p>
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  No access events today yet.
+                </p>
               )}
             </div>
           </CardContent>
@@ -187,6 +285,10 @@ export function DashboardPage() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Tip: use <span className="font-medium">Simulate Gate Scan</span> to walk through the check-in workflow and the
-        denial scenarios (expired, revoked, unknown QR, inactive employee, unauthorized gate).
+        Tip: use <span className="font-medium">Simulate Gate Scan</span> to walk through the
+        check-in workflow and the denial scenarios (expired, revoked, unknown QR, inactive employee,
+        unauthorized gate).
       </p>
+    </div>
+  );
+}

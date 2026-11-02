@@ -8,8 +8,18 @@ function delay<T>(value: T, ms = 90): Promise<T> {
 }
 
 export const FACTORIES: Factory[] = [
-  { id: "BD", name: "Binh Duong Factory", address: "VSIP II, Road 5, Binh Duong Province", status: "ACTIVE" },
-  { id: "LA", name: "Long An Factory", address: "Long An Industrial Park, Tan An City, Long An Province", status: "ACTIVE" },
+  {
+    id: "BD",
+    name: "Binh Duong Factory",
+    address: "VSIP II, Road 5, Binh Duong Province",
+    status: "ACTIVE",
+  },
+  {
+    id: "LA",
+    name: "Long An Factory",
+    address: "Long An Industrial Park, Tan An City, Long An Province",
+    status: "ACTIVE",
+  },
 ];
 
 export const DEPARTMENTS: Department[] = [
@@ -39,7 +49,11 @@ export const systemService = {
   },
 
   async createUser(input: Omit<SystemUser, "id" | "lastLogin">): Promise<SystemUser> {
-    const user: SystemUser = { ...input, id: `USR-${String(MOCK_USERS.length + 1).padStart(3, "0")}`, lastLogin: null };
+    const user: SystemUser = {
+      ...input,
+      id: `USR-${String(MOCK_USERS.length + 1).padStart(3, "0")}`,
+      lastLogin: null,
+    };
     MOCK_USERS.push(user);
     notifyDataChanged();
     return delay(user, 350);
@@ -76,7 +90,10 @@ export const systemService = {
   },
 
   async createDepartment(input: Omit<Department, "id">): Promise<Department> {
-    const dep: Department = { ...input, id: `${input.factoryId}-${Math.random().toString(36).slice(2, 6).toUpperCase()}` };
+    const dep: Department = {
+      ...input,
+      id: `${input.factoryId}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+    };
     DEPARTMENTS.push(dep);
     notifyDataChanged();
     return delay(dep, 300);

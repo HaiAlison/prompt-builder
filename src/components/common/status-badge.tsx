@@ -33,7 +33,15 @@ const TONE_CLASS: Record<BadgeTone, string> = {
   navy: "bg-primary/10 text-primary border-primary/25",
 };
 
-export function StatusBadge({ tone, label, className }: { tone: BadgeTone; label: string; className?: string }) {
+export function StatusBadge({
+  tone,
+  label,
+  className,
+}: {
+  tone: BadgeTone;
+  label: string;
+  className?: string;
+}) {
   return (
     <span
       className={cn(
@@ -130,5 +138,8 @@ const REPORT_TONE: Record<ReportStatus, BadgeTone> = {
 };
 
 export const ReportBadge = ({ status }: { status: ReportStatus }) => (
-  <StatusBadge tone={REPORT_TONE[status]} label={status.replace("_", " ").charAt(0) + status.replace("_", " ").slice(1).toLowerCase()} />
+  <StatusBadge
+    tone={REPORT_TONE[status]}
+    label={status.replace("_", " ").charAt(0) + status.replace("_", " ").slice(1).toLowerCase()}
+  />
 );

@@ -1,5 +1,9 @@
 /** Renders an inline react-qr-code SVG element to a PNG file download. */
-export async function downloadQrPng(filename: string, svgEl: SVGSVGElement, size = 512): Promise<void> {
+export async function downloadQrPng(
+  filename: string,
+  svgEl: SVGSVGElement,
+  size = 512,
+): Promise<void> {
   const xml = new XMLSerializer().serializeToString(svgEl);
   const svgBlob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(svgBlob);

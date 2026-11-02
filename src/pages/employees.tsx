@@ -39,7 +39,13 @@ export function EmployeesPage() {
 
   const departments = useAsync(() => systemService.listDepartments(), [version]);
   const employees = useAsync(
-    () => employeeService.list({ q, factoryId: factory, departmentId: department, employmentStatus: status as EmploymentStatus | "ALL" }),
+    () =>
+      employeeService.list({
+        q,
+        factoryId: factory,
+        departmentId: department,
+        employmentStatus: status as EmploymentStatus | "ALL",
+      }),
     [q, factory, department, status, version],
   );
 
@@ -48,7 +54,10 @@ export function EmployeesPage() {
       { value: "ALL", label: "All departments" },
       ...(departments.data ?? [])
         .filter((d) => factory === "ALL" || d.factoryId === factory)
-        .map((d) => ({ value: d.id, label: `${d.name}${factory === "ALL" ? ` (${d.factoryId})` : ""}` })),
+        .map((d) => ({
+          value: d.id,
+          label: `${d.name}${factory === "ALL" ? ` (${d.factoryId})` : ""}`,
+        })),
     ],
     [departments.data, factory],
   );
@@ -63,14 +72,39 @@ export function EmployeesPage() {
     const rows = employees.data ?? [];
     downloadCsv(
       `tmc-employees-${new Date().toISOString().slice(0, 10)}.csv`,
-      ["Employee ID", "Full Name", "Department", "Position", "Factory", "Email", "Phone", "Employment Status", "QR Status"],
-      rows.map((r) => [r.id, r.fullName, r.departmentName, r.position, r.factoryId, r.email, r.phone, r.employmentStatus, r.qrStatus ?? ""]),
+      [
+        "Employee ID",
+        "Full Name",
+        "Department",
+        "Position",
+        "Factory",
+        "Email",
+        "Phone",
+        "Employment Status",
+        "QR Status",
+      ],
+      rows.map((r) => [
+        r.id,
+        r.fullName,
+        r.departmentName,
+        r.position,
+        r.factoryId,
+        r.email,
+        r.phone,
+        r.employmentStatus,
+        r.qrStatus ?? "",
+      ]),
     );
     toast.success(`Exported ${rows.length} employees to CSV`);
   }
 
   const columns: Column<EmployeeRow>[] = [
-    { key: "id", header: "Employee ID", render: (r) => <span className="font-mono text-xs">{r.id}</span>, sort: (r) => r.id },
+    {
+      key: "id",
+      header: "Employee ID",
+      render: (r) => <span className="font-mono text-xs">{r.id}</span>,
+      sort: (r) => r.id,
+    },
     {
       key: "name",
       header: "Full Name",
@@ -82,28 +116,71 @@ export function EmployeesPage() {
       ),
       sort: (r) => r.fullName,
     },
-    { key: "dept", header: "Department", render: (r) => r.departmentName, sort: (r) => r.departmentName },
+    {
+      key: "dept",
+      header: "Department",
+      render: (r) => r.departmentName,
+      sort: (r) => r.departmentName,
+    },
     { key: "pos", header: "Position", render: (r) => r.position },
-    { key: "factory", header: "Factory", render: (r) => (r.factoryId === "BD" ? "Binh Duong" : "Long An"), sort: (r) => r.factoryId },
+    {
+      key: "factory",
+      header: "Factory",
+      render: (r) => (r.factoryId === "BD" ? "Binh Duong" : "Long An"),
+      sort: (r) => r.factoryId,
+    },
     { key: "email", header: "Email", render: (r) => <span className="text-xs">{r.email}</span> },
-    { key: "phone", header: "Phone", render: (r) => <span className="text-xs tabular-nums">{r.phone}</span> },
-    { key: "status", header: "Status", render: (r) => <EmploymentBadge status={r.employmentStatus} />, sort: (r) => r.employmentStatus },
-    { key: "qr", header: "QR Status", render: (r) => (r.qrStatus ? <QrBadge status={r.qrStatus} /> : <span className="text-xs text-muted-foreground">—</span>) },
+    {
+      key: "phone",
+      header: "Phone",
+      render: (r) => <span className="text-xs tabular-nums">{r.phone}</span>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <EmploymentBadge status={r.employmentStatus} />,
+      sort: (r) => r.employmentStatus,
+    },
+    {
+      key: "qr",
+      header: "QR Status",
+      render: (r) =>
+        r.qrStatus ? (
+          <QrBadge status={r.qrStatus} />
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        ),
+    },
     {
       key: "actions",
       header: "",
       render: (r) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Actions for ${r.fullName}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              aria-label={`Actions for ${r.fullName}`}
+            >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => { setDetail(r); setDetailOpen(true); }}>
+            <DropdownMenuItem
+              onClick={() => {
+                setDetail(r);
+                setDetailOpen(true);
+              }}
+            >
               <Eye className="mr-2 h-4 w-4" /> View details
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setEditing(r); setFormOpen(true); }}>
+            <DropdownMenuItem
+              onClick={() => {
+                setEditing(r);
+                setFormOpen(true);
+              }}
+            >
               <Pencil className="mr-2 h-4 w-4" /> Edit
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -127,7 +204,12 @@ export function EmployeesPage() {
             <Button variant="outline" onClick={exportCsv}>
               <Download className="h-4 w-4" /> Export CSV
             </Button>
-            <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setFormOpen(true);
+              }}
+            >
               <UserPlus className="h-4 w-4" /> Create Employee
             </Button>
           </>
@@ -154,24 +236,34 @@ export function EmployeesPage() {
             <FilterSelect
               label="Factory"
               value={factory}
-              onChange={(v) => { setFactory(v as FactoryFilter); setDepartment("ALL"); }}
+              onChange={(v) => {
+                setFactory(v as FactoryFilter);
+                setDepartment("ALL");
+              }}
               options={[
                 { value: "ALL", label: "All factories" },
                 { value: "BD", label: "Binh Duong" },
                 { value: "LA", label: "Long An" },
               ]}
             />
-            <FilterSelect label="Department" value={department} onChange={setDepartment} options={depOptions} />
+            <FilterSelect
+              label="Department"
+              value={department}
+              onChange={setDepartment}
+              options={depOptions}
+            />
             <FilterSelect
               label="Employment status"
               value={status}
               onChange={setStatus}
               options={[
                 { value: "ALL", label: "All statuses" },
-                ...(["ACTIVE", "PROBATION", "ON_LEAVE", "SUSPENDED", "TERMINATED"] as const).map((s) => ({
-                  value: s,
-                  label: EMPLOYMENT_STATUS_LABEL[s],
-                })),
+                ...(["ACTIVE", "PROBATION", "ON_LEAVE", "SUSPENDED", "TERMINATED"] as const).map(
+                  (s) => ({
+                    value: s,
+                    label: EMPLOYMENT_STATUS_LABEL[s],
+                  }),
+                ),
               ]}
             />
           </div>

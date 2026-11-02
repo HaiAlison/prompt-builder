@@ -10,33 +10,165 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LayoutRouteImport } from './routes/_layout'
+import { Route as LayoutAttendanceRouteImport } from './routes/_layout/attendance'
+import { Route as LayoutAuditLogsRouteImport } from './routes/_layout/audit-logs'
+import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
+import { Route as LayoutEmployeesRouteImport } from './routes/_layout/employees'
+import { Route as LayoutMyQrRouteImport } from './routes/_layout/my-qr'
+import { Route as LayoutQrCodesRouteImport } from './routes/_layout/qr-codes'
+import { Route as LayoutReportsRouteImport } from './routes/_layout/reports'
+import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutGatesIndexRouteImport } from './routes/_layout/gates/index'
+import { Route as LayoutGatesGateIdRouteImport } from './routes/_layout/gates/$gateId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LayoutRoute = LayoutRouteImport.update({
+  id: '/_layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutAttendanceRoute = LayoutAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAuditLogsRoute = LayoutAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutDashboardRoute = LayoutDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutEmployeesRoute = LayoutEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutMyQrRoute = LayoutMyQrRouteImport.update({
+  id: '/my-qr',
+  path: '/my-qr',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutQrCodesRoute = LayoutQrCodesRouteImport.update({
+  id: '/qr-codes',
+  path: '/qr-codes',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReportsRoute = LayoutReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutGatesIndexRoute = LayoutGatesIndexRouteImport.update({
+  id: '/gates/',
+  path: '/gates/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutGatesGateIdRoute = LayoutGatesGateIdRouteImport.update({
+  id: '/gates/$gateId',
+  path: '/gates/$gateId',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/attendance': typeof LayoutAttendanceRoute
+  '/audit-logs': typeof LayoutAuditLogsRoute
+  '/dashboard': typeof LayoutDashboardRoute
+  '/employees': typeof LayoutEmployeesRoute
+  '/my-qr': typeof LayoutMyQrRoute
+  '/qr-codes': typeof LayoutQrCodesRoute
+  '/reports': typeof LayoutReportsRoute
+  '/settings': typeof LayoutSettingsRoute
+  '/gates/$gateId': typeof LayoutGatesGateIdRoute
+  '/gates/': typeof LayoutGatesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/attendance': typeof LayoutAttendanceRoute
+  '/audit-logs': typeof LayoutAuditLogsRoute
+  '/dashboard': typeof LayoutDashboardRoute
+  '/employees': typeof LayoutEmployeesRoute
+  '/my-qr': typeof LayoutMyQrRoute
+  '/qr-codes': typeof LayoutQrCodesRoute
+  '/reports': typeof LayoutReportsRoute
+  '/settings': typeof LayoutSettingsRoute
+  '/gates/$gateId': typeof LayoutGatesGateIdRoute
+  '/gates': typeof LayoutGatesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_layout': typeof LayoutRouteWithChildren
+  '/_layout/attendance': typeof LayoutAttendanceRoute
+  '/_layout/audit-logs': typeof LayoutAuditLogsRoute
+  '/_layout/dashboard': typeof LayoutDashboardRoute
+  '/_layout/employees': typeof LayoutEmployeesRoute
+  '/_layout/my-qr': typeof LayoutMyQrRoute
+  '/_layout/qr-codes': typeof LayoutQrCodesRoute
+  '/_layout/reports': typeof LayoutReportsRoute
+  '/_layout/settings': typeof LayoutSettingsRoute
+  '/_layout/gates/$gateId': typeof LayoutGatesGateIdRoute
+  '/_layout/gates/': typeof LayoutGatesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/attendance'
+    | '/audit-logs'
+    | '/dashboard'
+    | '/employees'
+    | '/my-qr'
+    | '/qr-codes'
+    | '/reports'
+    | '/settings'
+    | '/gates/$gateId'
+    | '/gates/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/attendance'
+    | '/audit-logs'
+    | '/dashboard'
+    | '/employees'
+    | '/my-qr'
+    | '/qr-codes'
+    | '/reports'
+    | '/settings'
+    | '/gates/$gateId'
+    | '/gates'
+  id:
+    | '__root__'
+    | '/'
+    | '/_layout'
+    | '/_layout/attendance'
+    | '/_layout/audit-logs'
+    | '/_layout/dashboard'
+    | '/_layout/employees'
+    | '/_layout/my-qr'
+    | '/_layout/qr-codes'
+    | '/_layout/reports'
+    | '/_layout/settings'
+    | '/_layout/gates/$gateId'
+    | '/_layout/gates/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LayoutRoute: typeof LayoutRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +180,118 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_layout': {
+      id: '/_layout'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof LayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_layout/attendance': {
+      id: '/_layout/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof LayoutAttendanceRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/audit-logs': {
+      id: '/_layout/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/audit-logs'
+      preLoaderRoute: typeof LayoutAuditLogsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/dashboard': {
+      id: '/_layout/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof LayoutDashboardRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/employees': {
+      id: '/_layout/employees'
+      path: '/employees'
+      fullPath: '/employees'
+      preLoaderRoute: typeof LayoutEmployeesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/my-qr': {
+      id: '/_layout/my-qr'
+      path: '/my-qr'
+      fullPath: '/my-qr'
+      preLoaderRoute: typeof LayoutMyQrRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/qr-codes': {
+      id: '/_layout/qr-codes'
+      path: '/qr-codes'
+      fullPath: '/qr-codes'
+      preLoaderRoute: typeof LayoutQrCodesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/reports': {
+      id: '/_layout/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof LayoutReportsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/settings': {
+      id: '/_layout/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof LayoutSettingsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/gates/': {
+      id: '/_layout/gates/'
+      path: '/gates'
+      fullPath: '/gates/'
+      preLoaderRoute: typeof LayoutGatesIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/gates/$gateId': {
+      id: '/_layout/gates/$gateId'
+      path: '/gates/$gateId'
+      fullPath: '/gates/$gateId'
+      preLoaderRoute: typeof LayoutGatesGateIdRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
+interface LayoutRouteChildren {
+  LayoutAttendanceRoute: typeof LayoutAttendanceRoute
+  LayoutAuditLogsRoute: typeof LayoutAuditLogsRoute
+  LayoutDashboardRoute: typeof LayoutDashboardRoute
+  LayoutEmployeesRoute: typeof LayoutEmployeesRoute
+  LayoutMyQrRoute: typeof LayoutMyQrRoute
+  LayoutQrCodesRoute: typeof LayoutQrCodesRoute
+  LayoutReportsRoute: typeof LayoutReportsRoute
+  LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutGatesGateIdRoute: typeof LayoutGatesGateIdRoute
+  LayoutGatesIndexRoute: typeof LayoutGatesIndexRoute
+}
+
+const LayoutRouteChildren: LayoutRouteChildren = {
+  LayoutAttendanceRoute: LayoutAttendanceRoute,
+  LayoutAuditLogsRoute: LayoutAuditLogsRoute,
+  LayoutDashboardRoute: LayoutDashboardRoute,
+  LayoutEmployeesRoute: LayoutEmployeesRoute,
+  LayoutMyQrRoute: LayoutMyQrRoute,
+  LayoutQrCodesRoute: LayoutQrCodesRoute,
+  LayoutReportsRoute: LayoutReportsRoute,
+  LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutGatesGateIdRoute: LayoutGatesGateIdRoute,
+  LayoutGatesIndexRoute: LayoutGatesIndexRoute,
+}
+
+const LayoutRouteWithChildren =
+  LayoutRoute._addFileChildren(LayoutRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LayoutRoute: LayoutRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

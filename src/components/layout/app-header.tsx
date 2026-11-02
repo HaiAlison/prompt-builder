@@ -59,7 +59,9 @@ export function AppHeader() {
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [readIds, setReadIds] = useState<Set<string>>(new Set(NOTIFICATIONS.filter((n) => n.read).map((n) => n.id)));
+  const [readIds, setReadIds] = useState<Set<string>>(
+    new Set(NOTIFICATIONS.filter((n) => n.read).map((n) => n.id)),
+  );
 
   const employees = useAsync(() => employeeService.list(), []);
 
@@ -99,7 +101,10 @@ export function AppHeader() {
 
       {/* Factory scope */}
       <Select value={factoryFilter} onValueChange={(v) => setFactoryFilter(v as FactoryFilter)}>
-        <SelectTrigger className="h-8 w-[160px] border-none bg-muted/60 shadow-none" aria-label="Factory selector">
+        <SelectTrigger
+          className="h-8 w-[160px] border-none bg-muted/60 shadow-none"
+          aria-label="Factory selector"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -134,13 +139,19 @@ export function AppHeader() {
           />
           <div className="mt-2 max-h-80 overflow-y-auto">
             {search.trim() === "" ? (
-              <p className="px-2 py-4 text-center text-sm text-muted-foreground">Type to search across employees and gates.</p>
+              <p className="px-2 py-4 text-center text-sm text-muted-foreground">
+                Type to search across employees and gates.
+              </p>
             ) : results.emps.length === 0 && results.gates.length === 0 ? (
-              <p className="px-2 py-4 text-center text-sm text-muted-foreground">No matches for “{search}”.</p>
+              <p className="px-2 py-4 text-center text-sm text-muted-foreground">
+                No matches for “{search}”.
+              </p>
             ) : (
               <>
                 {results.emps.length > 0 && (
-                  <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Employees</p>
+                  <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Employees
+                  </p>
                 )}
                 {results.emps.map((e) => (
                   <button
@@ -158,7 +169,9 @@ export function AppHeader() {
                   </button>
                 ))}
                 {results.gates.length > 0 && (
-                  <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Gate stations</p>
+                  <p className="px-2 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Gate stations
+                  </p>
                 )}
                 {results.gates.map((g) => (
                   <button
@@ -184,7 +197,11 @@ export function AppHeader() {
       {/* Network status (simulated) */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className="flex h-8 items-center gap-1.5 rounded-md px-2 hover:bg-muted" aria-label="Network status">
+          <button
+            type="button"
+            className="flex h-8 items-center gap-1.5 rounded-md px-2 hover:bg-muted"
+            aria-label="Network status"
+          >
             {network === "ONLINE" ? (
               <Wifi className="h-4 w-4 text-success" />
             ) : network === "RECONNECTING" ? (
@@ -192,7 +209,9 @@ export function AppHeader() {
             ) : (
               <WifiOff className="h-4 w-4 text-destructive" />
             )}
-            <span className="hidden text-xs font-medium text-muted-foreground lg:inline">{network.charAt(0) + network.slice(1).toLowerCase()}</span>
+            <span className="hidden text-xs font-medium text-muted-foreground lg:inline">
+              {network.charAt(0) + network.slice(1).toLowerCase()}
+            </span>
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
@@ -218,7 +237,11 @@ export function AppHeader() {
       {/* Notifications */}
       <Popover>
         <PopoverTrigger asChild>
-          <button type="button" className="relative flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted" aria-label="Notifications">
+          <button
+            type="button"
+            className="relative flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+            aria-label="Notifications"
+          >
             <Bell className="h-4 w-4 text-muted-foreground" />
             {unread > 0 && (
               <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
@@ -238,7 +261,9 @@ export function AppHeader() {
                 className="flex w-full flex-col gap-0.5 border-b px-3 py-2.5 text-left last:border-0 hover:bg-accent/60"
               >
                 <span className="flex items-center gap-2 text-sm font-medium">
-                  {!readIds.has(n.id) && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-info" />}
+                  {!readIds.has(n.id) && (
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-info" />
+                  )}
                   {n.title}
                 </span>
                 <span className="text-xs text-muted-foreground">{n.message}</span>
@@ -254,13 +279,23 @@ export function AppHeader() {
       {/* User profile */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className="flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-muted" aria-label="User profile">
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-md px-1.5 py-1 hover:bg-muted"
+            aria-label="User profile"
+          >
             <Avatar className="h-7 w-7">
-              <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">{initials}</AvatarFallback>
+              <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
+                {initials}
+              </AvatarFallback>
             </Avatar>
             <span className="hidden text-left sm:block">
-              <span className="block max-w-[140px] truncate text-xs font-semibold leading-tight">{user.name}</span>
-              <span className="block text-[11px] leading-tight text-muted-foreground">{role?.label}</span>
+              <span className="block max-w-[140px] truncate text-xs font-semibold leading-tight">
+                {user.name}
+              </span>
+              <span className="block text-[11px] leading-tight text-muted-foreground">
+                {role?.label}
+              </span>
             </span>
             <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
@@ -277,10 +312,18 @@ export function AppHeader() {
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="w-56">
               {MOCK_USERS.map((u) => (
-                <DropdownMenuItem key={u.id} onClick={() => { setUser(u); toast.info(`Now acting as ${u.name} — ${ROLE_BY_NAME.get(u.role)?.label}`); }}>
+                <DropdownMenuItem
+                  key={u.id}
+                  onClick={() => {
+                    setUser(u);
+                    toast.info(`Now acting as ${u.name} — ${ROLE_BY_NAME.get(u.role)?.label}`);
+                  }}
+                >
                   <span className="flex flex-col">
                     <span className="text-sm">{u.name}</span>
-                    <span className="text-xs text-muted-foreground">{ROLE_BY_NAME.get(u.role)?.label}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {ROLE_BY_NAME.get(u.role)?.label}
+                    </span>
                   </span>
                 </DropdownMenuItem>
               ))}

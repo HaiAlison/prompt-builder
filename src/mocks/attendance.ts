@@ -1,20 +1,7 @@
-import type {
-  AttendanceTransaction,
-  DenialReason,
-  QrValidation,
-  TransactionStatus,
-} from "@/types";
+import type { AttendanceTransaction, DenialReason, QrValidation, TransactionStatus } from "@/types";
 import { EMPLOYEES } from "./data";
 import { GATES } from "./gates";
-import {
-  chance,
-  mulberry32,
-  pick,
-  randInt,
-  seededRngFor,
-  utcAsLocal,
-  type Rng,
-} from "./rand";
+import { chance, mulberry32, pick, randInt, seededRngFor, utcAsLocal, type Rng } from "./rand";
 
 const DAYS_BACK = 14;
 
@@ -52,7 +39,10 @@ function planDay(rng: Rng, dayKey: string, isToday: boolean): PlannedDay | null 
   const checkOut = isToday && co > nowMin ? null : co;
   return {
     checkIn: `${String(Math.floor(ci / 60)).padStart(2, "0")}:${String(ci % 60).padStart(2, "0")}`,
-    checkOut: checkOut === null ? null : `${String(Math.floor(checkOut / 60)).padStart(2, "0")}:${String(checkOut % 60).padStart(2, "0")}`,
+    checkOut:
+      checkOut === null
+        ? null
+        : `${String(Math.floor(checkOut / 60)).padStart(2, "0")}:${String(checkOut % 60).padStart(2, "0")}`,
     lateMinutes: Math.max(0, ci - (7 * 60 + 30 + 15)),
   };
 }
@@ -96,7 +86,13 @@ function generateTransactions(): AttendanceTransaction[] {
             gateId: gate.id,
             gateName: gate.name,
             eventType: "CHECK_IN",
-            timestamp: utcAsLocal(dateParts[0], dateParts[1], dateParts[2], Math.floor(randInt(empRng, 6 * 60 + 45, 8 * 60 + 15) / 60), 0),
+            timestamp: utcAsLocal(
+              dateParts[0],
+              dateParts[1],
+              dateParts[2],
+              Math.floor(randInt(empRng, 6 * 60 + 45, 8 * 60 + 15) / 60),
+              0,
+            ),
             qrValidation: validationFor(reason),
             status: "DENIED",
             denialReason: reason,
@@ -144,7 +140,10 @@ function generateTransactions(): AttendanceTransaction[] {
   for (let i = 0; i < 18; i++) {
     const dayKey = pick(rng, days);
     const d = dayKey.split("-").map(Number);
-    const gate = pick(rng, GATES.filter((g) => g.controllerStatus === "ONLINE"));
+    const gate = pick(
+      rng,
+      GATES.filter((g) => g.controllerStatus === "ONLINE"),
+    );
     out.push({
       id: nextId(),
       employeeId: "—",
@@ -166,7 +165,10 @@ function generateTransactions(): AttendanceTransaction[] {
   for (let i = 0; i < 8; i++) {
     const dayKey = pick(rng, days);
     const d = dayKey.split("-").map(Number);
-    const gate = pick(rng, GATES.filter((g) => g.controllerStatus !== "ONLINE"));
+    const gate = pick(
+      rng,
+      GATES.filter((g) => g.controllerStatus !== "ONLINE"),
+    );
     out.push({
       id: nextId(),
       employeeId: "—",
@@ -206,7 +208,13 @@ function seededLeave(employeeId: string, dayKey: string): boolean {
   return h % 100 < 3;
 }
 
-const DENIAL_POOL: DenialReason[] = ["EXPIRED_QR", "REVOKED_QR", "SUSPENDED_QR", "INACTIVE_EMPLOYEE", "UNAUTHORIZED_GATE"];
+const DENIAL_POOL: DenialReason[] = [
+  "EXPIRED_QR",
+  "REVOKED_QR",
+  "SUSPENDED_QR",
+  "INACTIVE_EMPLOYEE",
+  "UNAUTHORIZED_GATE",
+];
 
 function pickDenial(rng: Rng): DenialReason {
   return pick(rng, DENIAL_POOL);

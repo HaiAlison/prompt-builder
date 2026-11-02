@@ -104,12 +104,18 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
         <DialogHeader>
           <DialogTitle>{editing ? `Edit employee ${editing.id}` : "Create employee"}</DialogTitle>
           <DialogDescription>
-            {editing ? "Update employment information." : "New employees receive an employee ID automatically."}
+            {editing
+              ? "Update employment information."
+              : "New employees receive an employee ID automatically."}
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Full name" error={errors.fullName} className="col-span-2">
-            <Input value={form.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder="Nguyen Van A" />
+            <Input
+              value={form.fullName}
+              onChange={(e) => set("fullName", e.target.value)}
+              placeholder="Nguyen Van A"
+            />
           </Field>
           <Field label="Factory">
             <Select
@@ -120,7 +126,9 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
               }}
               disabled={!!editing}
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="BD">Binh Duong</SelectItem>
                 <SelectItem value="LA">Long An</SelectItem>
@@ -129,42 +137,78 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
           </Field>
           <Field label="Department" error={errors.departmentId}>
             <Select value={form.departmentId} onValueChange={(v) => set("departmentId", v)}>
-              <SelectTrigger><SelectValue placeholder="Select department" /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
               <SelectContent>
                 {factoryDeps.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </Field>
           <Field label="Position" error={errors.position}>
-            <Input value={form.position} onChange={(e) => set("position", e.target.value)} placeholder="Machine Operator" />
+            <Input
+              value={form.position}
+              onChange={(e) => set("position", e.target.value)}
+              placeholder="Machine Operator"
+            />
           </Field>
           <Field label="Employment status">
-            <Select value={form.employmentStatus} onValueChange={(v) => set("employmentStatus", v as EmploymentStatus)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+            <Select
+              value={form.employmentStatus}
+              onValueChange={(v) => set("employmentStatus", v as EmploymentStatus)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {(["ACTIVE", "PROBATION", "ON_LEAVE", "SUSPENDED", "TERMINATED"] as const).map((s) => (
-                  <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>
-                ))}
+                {(["ACTIVE", "PROBATION", "ON_LEAVE", "SUSPENDED", "TERMINATED"] as const).map(
+                  (s) => (
+                    <SelectItem key={s} value={s}>
+                      {s.replace("_", " ")}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
           </Field>
           <Field label="Email" error={errors.email}>
-            <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="name@tmc.com.vn" />
+            <Input
+              type="email"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              placeholder="name@tmc.com.vn"
+            />
           </Field>
           <Field label="Phone" error={errors.phone}>
-            <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+84 90 123 4567" />
+            <Input
+              value={form.phone}
+              onChange={(e) => set("phone", e.target.value)}
+              placeholder="+84 90 123 4567"
+            />
           </Field>
           <Field label="Hire date" error={errors.hireDate}>
-            <Input type="date" value={form.hireDate} onChange={(e) => set("hireDate", e.target.value)} />
+            <Input
+              type="date"
+              value={form.hireDate}
+              onChange={(e) => set("hireDate", e.target.value)}
+            />
           </Field>
           <Field label="Date of birth">
-            <Input type="date" value={form.dateOfBirth} onChange={(e) => set("dateOfBirth", e.target.value)} />
+            <Input
+              type="date"
+              value={form.dateOfBirth}
+              onChange={(e) => set("dateOfBirth", e.target.value)}
+            />
           </Field>
           <Field label="Gender">
             <Select value={form.gender} onValueChange={(v) => set("gender", v as "M" | "F")}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="M">Male</SelectItem>
                 <SelectItem value="F">Female</SelectItem>
@@ -173,15 +217,29 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
           </Field>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save} disabled={busy}>{busy ? "Saving…" : editing ? "Save changes" : "Create employee"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={save} disabled={busy}>
+            {busy ? "Saving…" : editing ? "Save changes" : "Create employee"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-function Field({ label, error, children, className }: { label: string; error?: string; children: React.ReactNode; className?: string }) {
+function Field({
+  label,
+  error,
+  children,
+  className,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className={className}>
       <Label className="mb-1.5 block text-xs">{label}</Label>
@@ -190,4 +248,3 @@ function Field({ label, error, children, className }: { label: string; error?: s
     </div>
   );
 }
-

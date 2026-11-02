@@ -70,10 +70,21 @@ export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }
   const scenarioChips: { label: string; employeeId: string | null; payload: string | null }[] = [
     { label: "Expired QR", employeeId: scenarioEmployee((s) => s === "EXPIRED"), payload: null },
     { label: "Revoked QR", employeeId: scenarioEmployee((s) => s === "REVOKED"), payload: null },
-    { label: "Inactive employee", employeeId: (employees.data ?? []).find((e) => e.employmentStatus === "SUSPENDED" || e.employmentStatus === "TERMINATED")?.id ?? null, payload: null },
+    {
+      label: "Inactive employee",
+      employeeId:
+        (employees.data ?? []).find(
+          (e) => e.employmentStatus === "SUSPENDED" || e.employmentStatus === "TERMINATED",
+        )?.id ?? null,
+      payload: null,
+    },
     { label: "Unknown QR", employeeId: null, payload: "TMCQR2|UNKNOWNFAKEPAYLOAD123456" },
-    { label: "Unauthorized gate", employeeId: null, payload: null, },
-  ].filter((c) => c.employeeId || c.payload) as { label: string; employeeId: string | null; payload: string | null }[];
+    { label: "Unauthorized gate", employeeId: null, payload: null },
+  ].filter((c) => c.employeeId || c.payload) as {
+    label: string;
+    employeeId: string | null;
+    payload: string | null;
+  }[];
 
   async function simulate() {
     if (!selectedEmployeeId && !payloadOverride) {
@@ -128,7 +139,13 @@ export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }
         }
       }}
     >
-      <DialogTrigger asChild>{children ?? <Button><ScanLine className="h-4 w-4" /> Simulate Gate Scan</Button>}</DialogTrigger>
+      <DialogTrigger asChild>
+        {children ?? (
+          <Button>
+            <ScanLine className="h-4 w-4" /> Simulate Gate Scan
+          </Button>
+        )}
+      </DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Simulate access transaction</DialogTitle>
@@ -187,7 +204,9 @@ export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }
             <div className="grid gap-1.5">
               <Label>Gate station</Label>
               <Select value={gateId} onValueChange={setGateId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   {GATES.map((g) => (
                     <SelectItem key={g.id} value={g.id}>
@@ -200,7 +219,9 @@ export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }
             <div className="grid gap-1.5">
               <Label>Event type</Label>
               <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="CHECK_IN">Check-in</SelectItem>
                   <SelectItem value="CHECK_OUT">Check-out</SelectItem>
@@ -211,7 +232,8 @@ export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }
 
           {network === "OFFLINE" && (
             <p className="flex items-center gap-2 rounded-md bg-warning/10 px-3 py-2 text-xs text-warning">
-              <WifiOff className="h-3.5 w-3.5" /> Gate network is offline — successful transactions will queue as PENDING for synchronization.
+              <WifiOff className="h-3.5 w-3.5" /> Gate network is offline — successful transactions
+              will queue as PENDING for synchronization.
             </p>
           )}
 
@@ -234,16 +256,32 @@ export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }
                 {result!.message}
               </p>
               <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <span>Transaction</span><span className="font-medium text-foreground">{tx.id}</span>
-                <span>Employee</span><span className="font-medium text-foreground">{tx.employeeName} ({tx.employeeId})</span>
-                <span>Gate</span><span className="font-medium text-foreground">{tx.gateName}</span>
-                <span>Event</span><span className="font-medium text-foreground">{EVENT_TYPE_LABEL[tx.eventType]}</span>
-                <span>Time</span><span className="font-medium text-foreground">{formatDateTime(tx.timestamp)}</span>
-                <span>QR validation</span><span className="font-medium text-foreground">{tx.qrValidation}</span>
-                <span>Status</span><span className="mt-0.5"><TransactionBadge status={tx.status} /></span>
+                <span>Transaction</span>
+                <span className="font-medium text-foreground">{tx.id}</span>
+                <span>Employee</span>
+                <span className="font-medium text-foreground">
+                  {tx.employeeName} ({tx.employeeId})
+                </span>
+                <span>Gate</span>
+                <span className="font-medium text-foreground">{tx.gateName}</span>
+                <span>Event</span>
+                <span className="font-medium text-foreground">
+                  {EVENT_TYPE_LABEL[tx.eventType]}
+                </span>
+                <span>Time</span>
+                <span className="font-medium text-foreground">{formatDateTime(tx.timestamp)}</span>
+                <span>QR validation</span>
+                <span className="font-medium text-foreground">{tx.qrValidation}</span>
+                <span>Status</span>
+                <span className="mt-0.5">
+                  <TransactionBadge status={tx.status} />
+                </span>
                 {tx.denialReason && (
                   <>
-                    <span>Reason</span><span className="font-medium text-foreground">{DENIAL_REASON_LABEL[tx.denialReason]}</span>
+                    <span>Reason</span>
+                    <span className="font-medium text-foreground">
+                      {DENIAL_REASON_LABEL[tx.denialReason]}
+                    </span>
                   </>
                 )}
               </div>
@@ -252,7 +290,9 @@ export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Close</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Close
+          </Button>
           <Button onClick={simulate} disabled={busy}>
             <ScanLine className="h-4 w-4" />
             {busy ? "Validating…" : "Scan QR"}

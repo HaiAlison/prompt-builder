@@ -16,12 +16,7 @@ export interface Department {
   factoryId: FactoryId;
 }
 
-export type EmploymentStatus =
-  | "ACTIVE"
-  | "PROBATION"
-  | "ON_LEAVE"
-  | "SUSPENDED"
-  | "TERMINATED";
+export type EmploymentStatus = "ACTIVE" | "PROBATION" | "ON_LEAVE" | "SUSPENDED" | "TERMINATED";
 
 export interface Employee {
   id: string; // e.g. TMC-BD-0001
@@ -66,12 +61,7 @@ export type DenialReason =
   | "SUSPENDED_QR";
 
 export type QrValidation =
-  | "VALID"
-  | "EXPIRED"
-  | "REVOKED"
-  | "SUSPENDED"
-  | "UNKNOWN"
-  | "NOT_VALIDATED";
+  "VALID" | "EXPIRED" | "REVOKED" | "SUSPENDED" | "UNKNOWN" | "NOT_VALIDATED";
 
 export interface AttendanceTransaction {
   id: string; // e.g. TX-000001
@@ -90,12 +80,7 @@ export interface AttendanceTransaction {
   synced: boolean;
 }
 
-export type AttendanceStatus =
-  | "PRESENT"
-  | "LATE"
-  | "ABSENT"
-  | "ON_LEAVE"
-  | "INCOMPLETE";
+export type AttendanceStatus = "PRESENT" | "LATE" | "ABSENT" | "ON_LEAVE" | "INCOMPLETE";
 
 export interface DailySummary {
   employeeId: string;
@@ -124,14 +109,12 @@ export interface GateStation {
   lastHeartbeat: string;
 }
 
-export type ReportType =
-  | "MONTHLY_ATTENDANCE"
-  | "FACTORY_ATTENDANCE"
-  | "ACCESS_CONTROL";
+export type ReportType = "MONTHLY_ATTENDANCE" | "FACTORY_ATTENDANCE" | "ACCESS_CONTROL";
 
 export type ReportStatus = "NOT_GENERATED" | "GENERATING" | "COMPLETED" | "FAILED";
 
 export interface MonthlyAttendanceRow {
+  id: string;
   employeeId: string;
   employeeName: string;
   departmentName: string;
@@ -185,13 +168,7 @@ export type AuditAction =
   | "CONFIG_CHANGE";
 
 export type AuditModule =
-  | "EMPLOYEES"
-  | "QR_CODES"
-  | "ATTENDANCE"
-  | "GATES"
-  | "REPORTS"
-  | "SETTINGS"
-  | "AUTH";
+  "EMPLOYEES" | "QR_CODES" | "ATTENDANCE" | "GATES" | "REPORTS" | "SETTINGS" | "AUTH";
 
 export interface AuditLog {
   id: string;

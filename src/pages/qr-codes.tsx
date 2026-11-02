@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { MoreHorizontal, QrCode, RefreshCw, Ban, Plus } from "lucide-react";
+import { MoreHorizontal, QrCode as QR, RefreshCw, Ban, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,7 +48,11 @@ export function QrCodesPage() {
     const query = genQuery.trim().toLowerCase();
     if (!query) return [];
     return (codes.data ?? [])
-      .filter((c) => c.employeeId.toLowerCase().includes(query) || c.employeeName.toLowerCase().includes(query))
+      .filter(
+        (c) =>
+          c.employeeId.toLowerCase().includes(query) ||
+          c.employeeName.toLowerCase().includes(query),
+      )
       .slice(0, 5);
   }, [genQuery, codes.data]);
 
@@ -78,32 +82,83 @@ export function QrCodesPage() {
   }
 
   const columns: Column<QrCode>[] = [
-    { key: "empId", header: "Employee ID", render: (r) => <span className="font-mono text-xs">{r.employeeId}</span>, sort: (r) => r.employeeId },
-    { key: "name", header: "Employee Name", render: (r) => <span className="font-medium">{r.employeeName}</span>, sort: (r) => r.employeeName },
-    { key: "qrId", header: "QR Code ID", render: (r) => <span className="font-mono text-xs">{r.id}</span>, sort: (r) => r.id },
-    { key: "status", header: "Status", render: (r) => <QrBadge status={r.status} />, sort: (r) => r.status },
-    { key: "created", header: "Created At", render: (r) => <span className="text-xs">{formatDate(r.createdAt)}</span>, sort: (r) => r.createdAt },
-    { key: "expires", header: "Expiration Date", render: (r) => <span className="text-xs">{formatDate(r.expiresAt)}</span>, sort: (r) => r.expiresAt },
-    { key: "used", header: "Last Used At", render: (r) => <span className="text-xs">{r.lastUsedAt ? formatDate(r.lastUsedAt) : "Never"}</span>, sort: (r) => r.lastUsedAt ?? "" },
+    {
+      key: "empId",
+      header: "Employee ID",
+      render: (r) => <span className="font-mono text-xs">{r.employeeId}</span>,
+      sort: (r) => r.employeeId,
+    },
+    {
+      key: "name",
+      header: "Employee Name",
+      render: (r) => <span className="font-medium">{r.employeeName}</span>,
+      sort: (r) => r.employeeName,
+    },
+    {
+      key: "qrId",
+      header: "QR Code ID",
+      render: (r) => <span className="font-mono text-xs">{r.id}</span>,
+      sort: (r) => r.id,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (r) => <QrBadge status={r.status} />,
+      sort: (r) => r.status,
+    },
+    {
+      key: "created",
+      header: "Created At",
+      render: (r) => <span className="text-xs">{formatDate(r.createdAt)}</span>,
+      sort: (r) => r.createdAt,
+    },
+    {
+      key: "expires",
+      header: "Expiration Date",
+      render: (r) => <span className="text-xs">{formatDate(r.expiresAt)}</span>,
+      sort: (r) => r.expiresAt,
+    },
+    {
+      key: "used",
+      header: "Last Used At",
+      render: (r) => (
+        <span className="text-xs">{r.lastUsedAt ? formatDate(r.lastUsedAt) : "Never"}</span>
+      ),
+      sort: (r) => r.lastUsedAt ?? "",
+    },
     {
       key: "actions",
       header: "",
       render: (r) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Actions for ${r.id}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              aria-label={`Actions for ${r.id}`}
+            >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => { setDetail(r); setDetailOpen(true); }}>
-              <QrCode className="mr-2 h-4 w-4" /> View QR code
+            <DropdownMenuItem
+              onClick={() => {
+                setDetail(r);
+                setDetailOpen(true);
+              }}
+            >
+              <QR className="mr-2 h-4 w-4" /> View QR code
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => regenerate(r)} disabled={busy}>
               <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => revoke(r)} disabled={r.status === "REVOKED"} className="text-destructive focus:text-destructive">
+            <DropdownMenuItem
+              onClick={() => revoke(r)}
+              disabled={r.status === "REVOKED"}
+              className="text-destructive focus:text-destructive"
+            >
               <Ban className="mr-2 h-4 w-4" /> Revoke
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -134,7 +189,12 @@ export function QrCodesPage() {
           <div className="flex flex-wrap items-end gap-3">
             <div>
               <p className="mb-1.5 text-xs font-medium text-muted-foreground">Search</p>
-              <Input placeholder="Employee, name or QR ID…" value={q} onChange={(e) => setQ(e.target.value)} className="h-9 w-60" />
+              <Input
+                placeholder="Employee, name or QR ID…"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                className="h-9 w-60"
+              />
             </div>
             <FilterSelect
               label="Factory"
@@ -152,7 +212,10 @@ export function QrCodesPage() {
               onChange={setStatus}
               options={[
                 { value: "ALL", label: "All statuses" },
-                ...(["ACTIVE", "EXPIRED", "REVOKED", "SUSPENDED"] as const).map((s) => ({ value: s, label: QR_STATUS_LABEL[s] })),
+                ...(["ACTIVE", "EXPIRED", "REVOKED", "SUSPENDED"] as const).map((s) => ({
+                  value: s,
+                  label: QR_STATUS_LABEL[s],
+                })),
               ]}
             />
           </div>
@@ -166,7 +229,8 @@ export function QrCodesPage() {
           <DialogHeader>
             <DialogTitle>Generate QR Code</DialogTitle>
             <DialogDescription>
-              Issues a fresh code for an employee. Any previously active code is revoked automatically.
+              Issues a fresh code for an employee. Any previously active code is revoked
+              automatically.
             </DialogDescription>
           </DialogHeader>
           <Input
@@ -176,10 +240,15 @@ export function QrCodesPage() {
           />
           <div className="rounded-md border">
             {genQuery && genMatches.length === 0 && (
-              <p className="px-3 py-3 text-sm text-muted-foreground">No employee matches “{genQuery}”.</p>
+              <p className="px-3 py-3 text-sm text-muted-foreground">
+                No employee matches “{genQuery}”.
+              </p>
             )}
             {genMatches.map((m) => (
-              <div key={m.employeeId} className="flex items-center gap-2 border-b px-3 py-2 text-sm last:border-0">
+              <div
+                key={m.employeeId}
+                className="flex items-center gap-2 border-b px-3 py-2 text-sm last:border-0"
+              >
                 <span className="min-w-0 flex-1 truncate">
                   <span className="font-medium">{m.employeeName}</span>
                   <span className="ml-2 text-xs text-muted-foreground">{m.employeeId}</span>
@@ -189,10 +258,16 @@ export function QrCodesPage() {
                 </Button>
               </div>
             ))}
-            {!genQuery && <p className="px-3 py-3 text-sm text-muted-foreground">Start typing to find an employee.</p>}
+            {!genQuery && (
+              <p className="px-3 py-3 text-sm text-muted-foreground">
+                Start typing to find an employee.
+              </p>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setGenOpen(false)}>Close</Button>
+            <Button variant="outline" onClick={() => setGenOpen(false)}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
