@@ -6,6 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { KpiCard } from "@/components/common/kpi-card";
+
 import { PageHeader } from "@/components/common/filter-select";
 import { EventTypeBadge, TransactionBadge } from "@/components/common/status-badge";
 import { ScanSimulatorDialog } from "@/components/attendance/scan-simulator";
