@@ -17,7 +17,7 @@ export function randInt(rng: Rng, min: number, max: number): number {
 }
 
 export function pick<T>(rng: Rng, arr: readonly T[]): T {
-  return arr[Math.floor(rng() * arr.length)];
+  return arr[Math.floor(rng() * arr.length)]!;
 }
 
 export function chance(rng: Rng, p: number): boolean {
@@ -29,7 +29,7 @@ const TOKEN_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 export function token(rng: Rng, length: number): string {
   let out = "";
   for (let i = 0; i < length; i++) {
-    out += TOKEN_CHARS[Math.floor(rng() * TOKEN_CHARS.length)];
+    out += TOKEN_CHARS[Math.floor(rng() * TOKEN_CHARS.length)]!;
   }
   return out;
 }
@@ -48,6 +48,12 @@ export function utcAsLocal(
   minutes: number,
 ): string {
   return new Date(Date.UTC(year, month - 1, day, hours, minutes, 0)).toISOString();
+}
+
+/** Split a `YYYY-MM-DD` key into a fixed [year, month, day] numeric tuple. */
+export function ymd(key: string): [number, number, number] {
+  const [y = 0, m = 1, d = 1] = key.split("-").map(Number);
+  return [y, m, d];
 }
 
 export function seededRngFor(key: string): Rng {

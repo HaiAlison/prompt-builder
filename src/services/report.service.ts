@@ -20,7 +20,7 @@ function delay<T>(value: T, ms = 90): Promise<T> {
 
 /** Working days (Mon–Sat) of a month. */
 function workingDaysOfMonth(month: string): string[] {
-  const [y, m] = month.split("-").map(Number);
+  const [y = 0, m = 1] = month.split("-").map(Number);
   const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
   const out: string[] = [];
   for (let d = 1; d <= days; d++) {
@@ -80,6 +80,7 @@ export const reportService = {
         }
       }
       return {
+        id: emp.id,
         employeeId: emp.id,
         employeeName: emp.fullName,
         departmentName: emp.departmentName,
