@@ -27,8 +27,8 @@ export interface TransactionParams {
   gateId?: string;
   eventType?: EventType | "ALL";
   status?: TransactionStatus | "ALL";
-  from?: string; // YYYY-MM-DD
-  to?: string;
+  from?: string | undefined; // YYYY-MM-DD
+  to?: string | undefined;
 }
 
 function validationFor(reason: DenialReason): QrValidation {

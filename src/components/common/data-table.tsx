@@ -19,28 +19,28 @@ import { ChevronLeft, ChevronRight, ChevronsUpDown, SearchX } from "lucide-react
 import { Skeleton } from "@/components/ui/skeleton";
 
 export interface Column<T> {
-  key: string;
+  id: string;
   header: ReactNode;
-  render: (row: T) => ReactNode;
+  cell: (row: T) => ReactNode;
   sort?: (row: T) => string | number;
   className?: string;
 }
 
 interface DataTableProps<T> {
   columns: Column<T>[];
-  rows: T[];
+  data: T[];
   rowKey: (row: T) => string;
   pageSize?: number;
   loading?: boolean;
   emptyMessage?: string;
   emptyHint?: string;
   toolbar?: ReactNode;
-  initialSort?: { key: string; dir: "asc" | "desc" };
+  initialSort?: { id: string; dir: "asc" | "desc" };
 }
 
 export function DataTable<T>({
   columns,
-  rows,
+  data,
   rowKey,
   pageSize = 10,
   loading = false,
@@ -49,20 +49,20 @@ export function DataTable<T>({
   toolbar,
   initialSort,
 }: DataTableProps<T>) {
-  const [sortKey, setSortKey] = useState<string | null>(initialSort?.key ?? null);
+  const [sortId, setSortId] = useState<string | null>(initialSort?.id ?? null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(initialSort?.dir ?? "asc");
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(pageSize);
 
   useEffect(() => {
     setPage(1);
-  }, [rows, size]);
+  }, [data, size]);
 
   const sorted = useMemo(() => {
-    if (!sortKey) return rows;
-    const col = columns.find((c) => c.key === sortKey);
-    if (!col?.sort) return rows;
-    const out = [...rows].sort((a, b) => {
+    if (!sortId) return data;
+    const col = columns.find((c) => c.id === sortId);
+    if (!col?.sort) return data;
+    const out = [...data].sort((a, b) => {
       const va = col.sort!(a);
       const vb = col.sort!(b);
       if (va < vb) return sortDir === "asc" ? -1 : 1;
@@ -70,7 +70,7 @@ export function DataTable<T>({
       return 0;
     });
     return out;
-  }, [rows, columns, sortKey, sortDir]);
+  }, [data, columns, sortId, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / size));
   const safePage = Math.min(page, totalPages);
@@ -78,10 +78,10 @@ export function DataTable<T>({
 
   function toggleSort(col: Column<T>) {
     if (!col.sort) return;
-    if (sortKey === col.key) {
+    if (sortId === col.id) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
-      setSortKey(col.key);
+      setSortId(col.id);
       setSortDir("asc");
     }
   }
@@ -94,7 +94,7 @@ export function DataTable<T>({
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               {columns.map((col) => (
-                <TableHead key={col.key} className={col.className}>
+                <TableHead key={col.id} className={col.className}>
                   {col.sort ? (
                     <button
                       type="button"
@@ -116,7 +116,7 @@ export function DataTable<T>({
               Array.from({ length: 6 }).map((_, i) => (
                 <TableRow key={`skeleton-${i}`}>
                   {columns.map((col) => (
-                    <TableCell key={col.key}>
+                    <TableCell key={col.id}>
                       <Skeleton className="h-4 w-[72%]" />
                     </TableCell>
                   ))}
@@ -136,8 +136,8 @@ export function DataTable<T>({
               pageRows.map((row) => (
                 <TableRow key={rowKey(row)}>
                   {columns.map((col) => (
-                    <TableCell key={col.key} className={col.className}>
-                      {col.render(row)}
+                    <TableCell key={col.id} className={col.className}>
+                      {col.cell(row)}
                     </TableCell>
                   ))}
                 </TableRow>

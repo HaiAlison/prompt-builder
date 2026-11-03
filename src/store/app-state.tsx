@@ -28,7 +28,7 @@ const AppStateContext = createContext<AppState | null>(null);
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
   const [factoryFilter, setFactoryFilter] = useState<FactoryFilter>("ALL");
-  const [user, setUser] = useState<SystemUser>(() => MOCK_USERS[0]);
+  const [user, setUser] = useState<SystemUser>(MOCK_USERS[0]!);
   const [network, setNetwork] = useState<NetworkStatus>("ONLINE");
   const [version, setVersion] = useState(0);
 
