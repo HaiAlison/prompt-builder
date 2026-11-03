@@ -2,14 +2,91 @@ import type { DailySummary, AttendanceStatus } from "@/types";
 import { mulberry32, randInt, type Rng } from "./rand";
 
 const SURNAMES = [
-  "Nguyen", "Tran", "Le", "Pham", "Hoang", "Vu", "Dang", "Bui", "Do", "Ngo",
-  "Duong", "Ly", "Mai", "Trinh", "Phan", "Vo", "Dinh", "Luong", "Ta", "Ha",
+  "Nguyen",
+  "Tran",
+  "Le",
+  "Pham",
+  "Hoang",
+  "Vu",
+  "Dang",
+  "Bui",
+  "Do",
+  "Ngo",
+  "Duong",
+  "Ly",
+  "Mai",
+  "Trinh",
+  "Phan",
+  "Vo",
+  "Dinh",
+  "Luong",
+  "Ta",
+  "Ha",
 ];
 
 const MIDDLE_M = ["Van", "Hung", "Duc", "Quoc", "Thanh", "Ngoc", "Minh", "Tuan", "Khanh", "Bao"];
 const MIDDLE_F = ["Thi", "Ngoc", "Thanh", "Thu", "Hong", "Mai", "Kim", "Dieu", "My", "Bich"];
-const GIVEN_M = ["An", "Binh", "Cuong", "Dung", "Duy", "Giang", "Hai", "Hieu", "Hoang", "Hung", "Khanh", "Kien", "Lam", "Long", "Manh", "Nam", "Phong", "Quang", "Son", "Tan", "Thang", "Tien", "Toan", "Trung", "Tuan", "Viet", "Vu"];
-const GIVEN_F = ["Anh", "Chi", "Diep", "Dung", "Giang", "Ha", "Hanh", "Hoa", "Hue", "Huong", "Lan", "Lien", "Linh", "Mai", "Nga", "Ngan", "Nhi", "Nhung", "Oanh", "Phuong", "Quyen", "Sim", "Tam", "Thao", "Trang", "Trinh", "Tuyet", "Uyen", "Xuan", "Yen"];
+const GIVEN_M = [
+  "An",
+  "Binh",
+  "Cuong",
+  "Dung",
+  "Duy",
+  "Giang",
+  "Hai",
+  "Hieu",
+  "Hoang",
+  "Hung",
+  "Khanh",
+  "Kien",
+  "Lam",
+  "Long",
+  "Manh",
+  "Nam",
+  "Phong",
+  "Quang",
+  "Son",
+  "Tan",
+  "Thang",
+  "Tien",
+  "Toan",
+  "Trung",
+  "Tuan",
+  "Viet",
+  "Vu",
+];
+const GIVEN_F = [
+  "Anh",
+  "Chi",
+  "Diep",
+  "Dung",
+  "Giang",
+  "Ha",
+  "Hanh",
+  "Hoa",
+  "Hue",
+  "Huong",
+  "Lan",
+  "Lien",
+  "Linh",
+  "Mai",
+  "Nga",
+  "Ngan",
+  "Nhi",
+  "Nhung",
+  "Oanh",
+  "Phuong",
+  "Quyen",
+  "Sim",
+  "Tam",
+  "Thao",
+  "Trang",
+  "Trinh",
+  "Tuyet",
+  "Uyen",
+  "Xuan",
+  "Yen",
+];
 
 export const DEPARTMENT_DEFS = [
   { key: "PROD", name: "Production" },
@@ -23,7 +100,14 @@ export const DEPARTMENT_DEFS = [
 ] as const;
 
 const POSITIONS: Record<string, string[]> = {
-  Production: ["Operator", "Line Leader", "Machine Operator", "Technician", "Production Supervisor", "Shift Leader"],
+  Production: [
+    "Operator",
+    "Line Leader",
+    "Machine Operator",
+    "Technician",
+    "Production Supervisor",
+    "Shift Leader",
+  ],
   "Quality Control": ["QC Inspector", "QC Supervisor", "QA Engineer", "QC Team Leader"],
   Warehouse: ["Storekeeper", "Forklift Driver", "Warehouse Supervisor", "Packing Staff"],
   Maintenance: ["Electrical Technician", "Mechanical Technician", "Maintenance Supervisor"],
@@ -34,8 +118,16 @@ const POSITIONS: Record<string, string[]> = {
 };
 
 const STREETS = [
-  "Le Loi", "Tran Hung Dao", "Nguyen Hue", "Dien Bien Phu", "Hoang Van Thu",
-  "Nguyen Trai", "Pham Ngu Lao", "Cach Mang Thang Tam", "Ba Trieu", "Xo Viet Nghe Tinh",
+  "Le Loi",
+  "Tran Hung Dao",
+  "Nguyen Hue",
+  "Dien Bien Phu",
+  "Hoang Van Thu",
+  "Nguyen Trai",
+  "Pham Ngu Lao",
+  "Cach Mang Thang Tam",
+  "Ba Trieu",
+  "Xo Viet Nghe Tinh",
 ];
 
 const DOMAINS = ["tmc.com.vn", "tmc-manufacturing.vn"];
@@ -75,7 +167,17 @@ export function generateEmployees(): GeneratedEmployee[] {
       const deptId = `${factoryId}-${dept.key}`;
       // Production is by far the largest department.
       const share =
-        dept.key === "PROD" ? 0.52 : dept.key === "QC" ? 0.12 : dept.key === "WH" ? 0.1 : dept.key === "MNT" ? 0.07 : dept.key === "SEC" ? 0.07 : 0.03;
+        dept.key === "PROD"
+          ? 0.52
+          : dept.key === "QC"
+            ? 0.12
+            : dept.key === "WH"
+              ? 0.1
+              : dept.key === "MNT"
+                ? 0.07
+                : dept.key === "SEC"
+                  ? 0.07
+                  : 0.03;
       const n = Math.max(4, Math.round(targets[factoryId] * share));
       for (let i = 0; i < n; i++) {
         counts[factoryId]++;
@@ -94,7 +196,13 @@ export function generateEmployees(): GeneratedEmployee[] {
           departmentName: dept.name,
           position,
           factoryId,
-          email: `${fullName.toLowerCase().replace(/[^a-z ]/g, "").split(" ").filter(Boolean).slice(-2).join(".")}${counts[factoryId] % 7}@${DOMAINS[Math.floor(rng() * DOMAINS.length)]}`,
+          email: `${fullName
+            .toLowerCase()
+            .replace(/[^a-z ]/g, "")
+            .split(" ")
+            .filter(Boolean)
+            .slice(-2)
+            .join(".")}${counts[factoryId] % 7}@${DOMAINS[Math.floor(rng() * DOMAINS.length)]}`,
           phone: `+84 9${randInt(rng, 10, 99)} ${randInt(rng, 100, 999)} ${randInt(rng, 100, 999)}`,
           employmentStatus: statusRoll(),
           hireDate: `${hireYear}-${String(randInt(rng, 1, 12)).padStart(2, "0")}-${String(randInt(rng, 1, 28)).padStart(2, "0")}`,

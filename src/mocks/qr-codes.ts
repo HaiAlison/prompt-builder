@@ -26,8 +26,17 @@ function generateQrCodes(): QrCode[] {
   for (const emp of EMPLOYEES) {
     seq++;
     const createdYear = randInt(rng, currentYear - 1, currentYear);
-    const createdMonth = createdYear === currentYear ? randInt(rng, 1, Math.max(1, new Date().getUTCMonth())) : randInt(rng, 1, 12);
-    const createdAt = utcAsLocal(createdYear, createdMonth, randInt(rng, 1, 28), randInt(rng, 6, 17), randInt(rng, 0, 59));
+    const createdMonth =
+      createdYear === currentYear
+        ? randInt(rng, 1, Math.max(1, new Date().getUTCMonth()))
+        : randInt(rng, 1, 12);
+    const createdAt = utcAsLocal(
+      createdYear,
+      createdMonth,
+      randInt(rng, 1, 28),
+      randInt(rng, 6, 17),
+      randInt(rng, 0, 59),
+    );
     const expiresAt = new Date(new Date(createdAt).getTime() + 365 * 86_400_000).toISOString();
     const status = statusFor(expiresAt, rng());
     let lastUsedAt: string | null = null;

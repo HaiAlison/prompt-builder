@@ -9,13 +9,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmployeeAvatar } from "@/components/common/employee-avatar";
-import { AttendanceBadge, EmploymentBadge, EventTypeBadge, QrBadge, TransactionBadge } from "@/components/common/status-badge";
-import { QRCodeReact } from "react-qr-code";
+import {
+  AttendanceBadge,
+  EmploymentBadge,
+  EventTypeBadge,
+  QrBadge,
+  TransactionBadge,
+} from "@/components/common/status-badge";
+import QRCodeReact from "react-qr-code";
 import { employeeService, type EmployeeRow } from "@/services/employee.service";
 import { attendanceService } from "@/services/attendance.service";
 import { useAppState } from "@/store/app-state";
 import { useAsync } from "@/hooks/use-async";
-import { EMPLOYMENT_STATUS_LABEL, QR_STATUS_LABEL, formatDateTime, formatDate, formatDuration, formatTime } from "@/utils/format";
+import {
+  EMPLOYMENT_STATUS_LABEL,
+  QR_STATUS_LABEL,
+  formatDateTime,
+  formatDate,
+  formatDuration,
+  formatTime,
+} from "@/utils/format";
 
 interface Props {
   employee: EmployeeRow | null;
@@ -77,7 +90,10 @@ export function EmployeeDetailDrawer({ employee, open, onOpenChange }: Props) {
                   </InfoBlock>
                   <Separator className="my-4" />
                   <InfoBlock title="Employment information">
-                    <Info label="Factory" value={emp.factoryId === "BD" ? "Binh Duong" : "Long An"} />
+                    <Info
+                      label="Factory"
+                      value={emp.factoryId === "BD" ? "Binh Duong" : "Long An"}
+                    />
                     <Info label="Department" value={emp.departmentName} />
                     <Info label="Position" value={emp.position} />
                     <Info label="Status" value={EMPLOYMENT_STATUS_LABEL[emp.employmentStatus]} />
@@ -95,15 +111,24 @@ export function EmployeeDetailDrawer({ employee, open, onOpenChange }: Props) {
                         <Info label="Status" value={<QrBadge status={qr.status} />} />
                         <Info label="Created" value={formatDate(qr.createdAt)} />
                         <Info label="Expires" value={formatDate(qr.expiresAt)} />
-                        <Info label="Last used" value={qr.lastUsedAt ? formatDateTime(qr.lastUsedAt) : "Never"} />
-                        <Info label="Payload" value={<span className="font-mono text-xs">{qr.payload}</span>} />
+                        <Info
+                          label="Last used"
+                          value={qr.lastUsedAt ? formatDateTime(qr.lastUsedAt) : "Never"}
+                        />
+                        <Info
+                          label="Payload"
+                          value={<span className="font-mono text-xs">{qr.payload}</span>}
+                        />
                       </InfoBlock>
                       <p className="text-center text-xs text-muted-foreground">
-                        The payload is an opaque rotating token — no employee data is embedded in the QR code.
+                        The payload is an opaque rotating token — no employee data is embedded in
+                        the QR code.
                       </p>
                     </div>
                   ) : (
-                    <p className="py-8 text-center text-sm text-muted-foreground">No QR code issued yet for this employee.</p>
+                    <p className="py-8 text-center text-sm text-muted-foreground">
+                      No QR code issued yet for this employee.
+                    </p>
                   )}
                 </TabsContent>
 
@@ -111,16 +136,25 @@ export function EmployeeDetailDrawer({ employee, open, onOpenChange }: Props) {
                   <div className="divide-y rounded-lg border">
                     {(detail.data?.attendanceHistory ?? []).map((s) => (
                       <div key={s.date} className="flex items-center gap-2 px-3 py-2 text-sm">
-                        <span className="w-24 shrink-0 text-xs text-muted-foreground">{formatDate(s.date)}</span>
-                        <span className="w-24">
-                          {s.firstCheckIn ? formatTime(s.firstCheckIn) : "—"} → {s.lastCheckOut ? formatTime(s.lastCheckOut) : "—"}
+                        <span className="w-24 shrink-0 text-xs text-muted-foreground">
+                          {formatDate(s.date)}
                         </span>
-                        <span className="w-16 text-xs text-muted-foreground">{formatDuration(s.workedMinutes)}</span>
-                        <span className="ml-auto"><AttendanceBadge status={s.status} /></span>
+                        <span className="w-24">
+                          {s.firstCheckIn ? formatTime(s.firstCheckIn) : "—"} →{" "}
+                          {s.lastCheckOut ? formatTime(s.lastCheckOut) : "—"}
+                        </span>
+                        <span className="w-16 text-xs text-muted-foreground">
+                          {formatDuration(s.workedMinutes)}
+                        </span>
+                        <span className="ml-auto">
+                          <AttendanceBadge status={s.status} />
+                        </span>
                       </div>
                     ))}
                     {(detail.data?.attendanceHistory ?? []).length === 0 && (
-                      <p className="py-8 text-center text-sm text-muted-foreground">No attendance history.</p>
+                      <p className="py-8 text-center text-sm text-muted-foreground">
+                        No attendance history.
+                      </p>
                     )}
                   </div>
                 </TabsContent>
@@ -129,14 +163,20 @@ export function EmployeeDetailDrawer({ employee, open, onOpenChange }: Props) {
                   <div className="divide-y rounded-lg border">
                     {(events.data ?? []).slice(0, 30).map((tx) => (
                       <div key={tx.id} className="flex items-center gap-2 px-3 py-2 text-sm">
-                        <span className="w-32 shrink-0 truncate text-xs text-muted-foreground">{formatDateTime(tx.timestamp)}</span>
+                        <span className="w-32 shrink-0 truncate text-xs text-muted-foreground">
+                          {formatDateTime(tx.timestamp)}
+                        </span>
                         <EventTypeBadge type={tx.eventType} />
-                        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">{tx.gateName}</span>
+                        <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                          {tx.gateName}
+                        </span>
                         <TransactionBadge status={tx.status} />
                       </div>
                     ))}
                     {(events.data ?? []).length === 0 && (
-                      <p className="py-8 text-center text-sm text-muted-foreground">No access events recorded.</p>
+                      <p className="py-8 text-center text-sm text-muted-foreground">
+                        No access events recorded.
+                      </p>
                     )}
                   </div>
                 </TabsContent>
@@ -149,10 +189,20 @@ export function EmployeeDetailDrawer({ employee, open, onOpenChange }: Props) {
   );
 }
 
-function InfoBlock({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+function InfoBlock({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <div className={className}>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </p>
       <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">{children}</div>
     </div>
   );

@@ -1,4 +1,13 @@
-import type { AttendanceStatus, DenialReason, EventType, GateStatus, GateType, QrStatus, TransactionStatus, EmploymentStatus } from "@/types";
+import type {
+  AttendanceStatus,
+  DenialReason,
+  EventType,
+  GateStatus,
+  GateType,
+  QrStatus,
+  TransactionStatus,
+  EmploymentStatus,
+} from "@/types";
 
 export function dateKey(iso: string): string {
   return iso.slice(0, 10);
@@ -14,7 +23,20 @@ export function formatTime(iso: string): string {
 
 export function formatDate(iso: string): string {
   const [y, m, d] = iso.slice(0, 10).split("-");
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   return `${months[Number(m) - 1]} ${Number(d)}, ${y}`;
 }
 
@@ -43,7 +65,20 @@ export function currentMonthKey(): string {
 
 export function monthLabel(key: string): string {
   const [y, m] = key.split("-");
-  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
   return `${months[Number(m) - 1]} ${y}`;
 }
 

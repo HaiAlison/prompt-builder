@@ -32,13 +32,24 @@ function workingDaysOfMonth(month: string): string[] {
 }
 
 export const reportService = {
-  async monthlyAttendance(month: string, factoryFilter: FactoryFilter = "ALL", departmentId?: string): Promise<MonthlyAttendanceRow[]> {
+  async monthlyAttendance(
+    month: string,
+    factoryFilter: FactoryFilter = "ALL",
+    departmentId?: string,
+  ): Promise<MonthlyAttendanceRow[]> {
     const workingDays = workingDaysOfMonth(month);
     const txByEmpDay = new Map<string, { in: boolean; late: boolean }>();
     for (const tx of TRANSACTIONS) {
-      if (monthKey(tx.timestamp) !== month || tx.eventType !== "CHECK_IN" || tx.status === "DENIED" || tx.status === "FAILED") continue;
+      if (
+        monthKey(tx.timestamp) !== month ||
+        tx.eventType !== "CHECK_IN" ||
+        tx.status === "DENIED" ||
+        tx.status === "FAILED"
+      )
+        continue;
       const key = `${tx.employeeId}|${dateKey(tx.timestamp)}`;
-      const late = Number(tx.timestamp.slice(11, 13)) * 60 + Number(tx.timestamp.slice(14, 16)) > 7 * 60 + 45;
+      const late =
+        Number(tx.timestamp.slice(11, 13)) * 60 + Number(tx.timestamp.slice(14, 16)) > 7 * 60 + 45;
       const prev = txByEmpDay.get(key);
       txByEmpDay.set(key, { in: true, late: (prev?.late ?? false) || late });
     }
@@ -104,11 +115,19 @@ export const reportService = {
           const now = new Date();
           for (let i = 13; i >= 0; i--) {
             const d = new Date(now.getTime() - i * 86_400_000).toISOString().slice(0, 10);
-            const dayTx = TRANSACTIONS.filter((t) => dateKey(t.timestamp) === d && t.factoryId === fid);
+            const dayTx = TRANSACTIONS.filter(
+              (t) => dateKey(t.timestamp) === d && t.factoryId === fid,
+            );
             out.push({
               date: d,
-              checkIns: dayTx.filter((t) => t.eventType === "CHECK_IN" && (t.status === "SUCCESS" || t.status === "PENDING")).length,
-              checkOuts: dayTx.filter((t) => t.eventType === "CHECK_OUT" && (t.status === "SUCCESS" || t.status === "PENDING")).length,
+              checkIns: dayTx.filter(
+                (t) =>
+                  t.eventType === "CHECK_IN" && (t.status === "SUCCESS" || t.status === "PENDING"),
+              ).length,
+              checkOuts: dayTx.filter(
+                (t) =>
+                  t.eventType === "CHECK_OUT" && (t.status === "SUCCESS" || t.status === "PENDING"),
+              ).length,
             });
           }
           return out;
@@ -124,9 +143,16 @@ export const reportService = {
     return rows;
   },
 
-  async accessControlReport(month: string, factoryFilter: FactoryFilter = "ALL"): Promise<AccessControlReportRow[]> {
-    const rows: AccessControlReportRow[] = GATES.filter((g) => factoryFilter === "ALL" || g.factoryId === factoryFilter).map((gate) => {
-      const txs = TRANSACTIONS.filter((t) => t.gateId === gate.id && monthKey(t.timestamp) === month);
+  async accessControlReport(
+    month: string,
+    factoryFilter: FactoryFilter = "ALL",
+  ): Promise<AccessControlReportRow[]> {
+    const rows: AccessControlReportRow[] = GATES.filter(
+      (g) => factoryFilter === "ALL" || g.factoryId === factoryFilter,
+    ).map((gate) => {
+      const txs = TRANSACTIONS.filter(
+        (t) => t.gateId === gate.id && monthKey(t.timestamp) === month,
+      );
       return {
         gateId: gate.id,
         gateName: gate.name,
@@ -145,7 +171,9 @@ export const reportService = {
 
   /** Simulates pushing the month's attendance data to the HR/Payroll system. */
   async exportPayroll(period: string, exportedBy: string): Promise<PayrollExport> {
-    const eligible = EMPLOYEES.filter((e) => e.employmentStatus === "ACTIVE" || e.employmentStatus === "PROBATION").length;
+    const eligible = EMPLOYEES.filter(
+      (e) => e.employmentStatus === "ACTIVE" || e.employmentStatus === "PROBATION",
+    ).length;
     const rec: PayrollExport = {
       id: `EXP-${String(PAYROLL_EXPORTS.length + 43).padStart(4, "0")}`,
       period,

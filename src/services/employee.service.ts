@@ -27,10 +27,16 @@ export const employeeService = {
   async list(params: EmployeeListParams = {}): Promise<EmployeeRow[]> {
     const q = params.q?.trim().toLowerCase();
     let rows = EMPLOYEES as Employee[];
-    if (params.factoryId && params.factoryId !== "ALL") rows = rows.filter((e) => e.factoryId === params.factoryId);
-    if (params.departmentId && params.departmentId !== "ALL") rows = rows.filter((e) => e.departmentId === params.departmentId);
-    if (params.employmentStatus && params.employmentStatus !== "ALL") rows = rows.filter((e) => e.employmentStatus === params.employmentStatus);
-    if (q) rows = rows.filter((e) => e.id.toLowerCase().includes(q) || e.fullName.toLowerCase().includes(q));
+    if (params.factoryId && params.factoryId !== "ALL")
+      rows = rows.filter((e) => e.factoryId === params.factoryId);
+    if (params.departmentId && params.departmentId !== "ALL")
+      rows = rows.filter((e) => e.departmentId === params.departmentId);
+    if (params.employmentStatus && params.employmentStatus !== "ALL")
+      rows = rows.filter((e) => e.employmentStatus === params.employmentStatus);
+    if (q)
+      rows = rows.filter(
+        (e) => e.id.toLowerCase().includes(q) || e.fullName.toLowerCase().includes(q),
+      );
     return delay(rows.map(toRow));
   },
 
@@ -47,10 +53,11 @@ export const employeeService = {
 
   async create(input: Omit<Employee, "id">): Promise<Employee> {
     const factoryId = input.factoryId;
-    const seq = EMPLOYEES.filter((e) => e.factoryId === factoryId).reduce((max, e) => {
-      const n = Number(e.id.split("-")[2]);
-      return Number.isFinite(n) ? Math.max(max, n) : max;
-    }, 0) + 1;
+    const seq =
+      EMPLOYEES.filter((e) => e.factoryId === factoryId).reduce((max, e) => {
+        const n = Number(e.id.split("-")[2]);
+        return Number.isFinite(n) ? Math.max(max, n) : max;
+      }, 0) + 1;
     const emp: Employee = { ...input, id: `TMC-${factoryId}-${String(seq).padStart(4, "0")}` };
     EMPLOYEES.push(emp);
     EMPLOYEE_BY_ID.set(emp.id, emp);

@@ -18,18 +18,26 @@ export const qrCodeService = {
   async list(params: QrListParams = {}): Promise<QrCode[]> {
     const q = params.q?.trim().toLowerCase();
     let rows = QR_CODES;
-    if (params.factoryId && params.factoryId !== "ALL") rows = rows.filter((r) => r.factoryId === params.factoryId);
-    if (params.status && params.status !== "ALL") rows = rows.filter((r) => r.status === params.status);
+    if (params.factoryId && params.factoryId !== "ALL")
+      rows = rows.filter((r) => r.factoryId === params.factoryId);
+    if (params.status && params.status !== "ALL")
+      rows = rows.filter((r) => r.status === params.status);
     if (q) {
       rows = rows.filter(
-        (r) => r.employeeId.toLowerCase().includes(q) || r.employeeName.toLowerCase().includes(q) || r.id.toLowerCase().includes(q),
+        (r) =>
+          r.employeeId.toLowerCase().includes(q) ||
+          r.employeeName.toLowerCase().includes(q) ||
+          r.id.toLowerCase().includes(q),
       );
     }
     return delay(rows);
   },
 
   async getById(id: string): Promise<QrCode | undefined> {
-    return delay(QR_CODES.find((r) => r.id === id), 60);
+    return delay(
+      QR_CODES.find((r) => r.id === id),
+      60,
+    );
   },
 
   /** Issues a fresh code for an employee; previously active codes are revoked. */
@@ -47,7 +55,9 @@ export const qrCodeService = {
       factoryId: emp.factoryId,
       status: "ACTIVE",
       createdAt: now.toISOString(),
-      expiresAt: new Date(now.getTime() + DEFAULT_CONFIG.employeeQrValidityDays * 86_400_000).toISOString(),
+      expiresAt: new Date(
+        now.getTime() + DEFAULT_CONFIG.employeeQrValidityDays * 86_400_000,
+      ).toISOString(),
       lastUsedAt: null,
       payload: newQrPayload(),
     };
