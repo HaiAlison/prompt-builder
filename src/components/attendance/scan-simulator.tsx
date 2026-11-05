@@ -37,12 +37,18 @@ import type { AttendanceTransaction, EventType, ScanResult } from "@/types";
  * service validates the QR exactly like the future backend will. Includes
  * one-click bad-scenario chips (expired/revoked/unknown/inactive employee).
  */
-export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }) {
+export function ScanSimulatorDialog({
+  children,
+  defaultGateId,
+}: {
+  children?: React.ReactNode;
+  defaultGateId?: string;
+}) {
   const { network, version } = useAppState();
   const [open, setOpen] = useState(false);
   const [employeeQuery, setEmployeeQuery] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
-  const [gateId, setGateId] = useState<string>(GATES[0].id);
+  const [gateId, setGateId] = useState<string>(defaultGateId ?? GATES[0]!.id);
   const [eventType, setEventType] = useState<EventType>("CHECK_IN");
   const [payloadOverride, setPayloadOverride] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -131,6 +137,7 @@ export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }
       open={open}
       onOpenChange={(o) => {
         setOpen(o);
+        if (o && defaultGateId) setGateId(defaultGateId);
         if (!o) {
           setResult(null);
           setSelectedEmployeeId(null);

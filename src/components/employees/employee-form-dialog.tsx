@@ -46,10 +46,14 @@ const EMPTY: Omit<Employee, "id"> = {
   gender: "M",
 };
 
+type FieldErrors = Partial<
+  Record<"fullName" | "departmentId" | "position" | "email" | "phone" | "hireDate", string>
+>;
+
 export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Props) {
   const { version } = useAppState();
   const [form, setForm] = useState<Omit<Employee, "id">>(EMPTY);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [busy, setBusy] = useState(false);
   const departments = useAsync(() => systemService.listDepartments(), [version]);
 
@@ -65,7 +69,7 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
   }
 
   function validate(): boolean {
-    const e: Record<string, string> = {};
+    const e: FieldErrors = {};
     if (!form.fullName.trim()) e.fullName = "Full name is required";
     if (!form.departmentId) e.departmentId = "Department is required";
     if (!form.position.trim()) e.position = "Position is required";
@@ -236,7 +240,7 @@ function Field({
   className,
 }: {
   label: string;
-  error?: string;
+  error?: string | undefined;
   children: React.ReactNode;
   className?: string;
 }) {

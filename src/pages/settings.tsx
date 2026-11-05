@@ -40,7 +40,7 @@ export function SettingsPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await systemService.updateConfig(form);
+      await systemService.saveConfig(form);
       toast.success("System configuration saved successfully");
     } catch {
       toast.error("Failed to save configuration");

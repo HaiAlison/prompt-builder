@@ -1,6 +1,6 @@
 import type { AuditAction, AuditLog, AuditModule } from "@/types";
 import { MOCK_USERS } from "./users";
-import { chance, mulberry32, pick, randInt, utcAsLocal } from "./rand";
+import { chance, mulberry32, pick, randInt, utcAsLocal, ymd } from "./rand";
 
 const TEMPLATES: { action: AuditAction; module: AuditModule; resource: string; details: string }[] =
   [
@@ -91,7 +91,7 @@ function generateLogs(): AuditLog[] {
     );
     const minutesBack = randInt(rng, 2, 7 * 24 * 60);
     const ts = new Date(now.getTime() - minutesBack * 60_000);
-    const d = ts.toISOString().slice(0, 10).split("-").map(Number);
+    const d = ymd(ts.toISOString().slice(0, 10));
     out.push({
       id: `LOG-${String(i + 1).padStart(5, "0")}`,
       userName: user.name,

@@ -117,19 +117,6 @@ const POSITIONS: Record<string, string[]> = {
   Security: ["Security Guard", "Security Supervisor", "Gate Keeper"],
 };
 
-const STREETS = [
-  "Le Loi",
-  "Tran Hung Dao",
-  "Nguyen Hue",
-  "Dien Bien Phu",
-  "Hoang Van Thu",
-  "Nguyen Trai",
-  "Pham Ngu Lao",
-  "Cach Mang Thang Tam",
-  "Ba Trieu",
-  "Xo Viet Nghe Tinh",
-];
-
 const DOMAINS = ["tmc.com.vn", "tmc-manufacturing.vn"];
 
 export interface GeneratedEmployee {
@@ -145,14 +132,13 @@ export interface GeneratedEmployee {
   hireDate: string;
   dateOfBirth: string;
   gender: "M" | "F";
-  address: string;
 }
 
 export function generateEmployees(): GeneratedEmployee[] {
   const rng = mulberry32(20261030);
   const out: GeneratedEmployee[] = [];
-  const counts: Record<string, number> = { BD: 0, LA: 0 };
-  const targets: Record<string, number> = { BD: 812, LA: 604 };
+  const counts: Record<"BD" | "LA", number> = { BD: 0, LA: 0 };
+  const targets: Record<"BD" | "LA", number> = { BD: 812, LA: 604 };
   const statusRoll = (): import("@/types").EmploymentStatus => {
     const r = rng();
     if (r < 0.86) return "ACTIVE";
@@ -185,7 +171,8 @@ export function generateEmployees(): GeneratedEmployee[] {
         const middle = gender === "M" ? MIDDLE_M : MIDDLE_F;
         const given = gender === "M" ? GIVEN_M : GIVEN_F;
         const fullName = `${SURNAMES[Math.floor(rng() * SURNAMES.length)]} ${middle[Math.floor(rng() * middle.length)]} ${given[Math.floor(rng() * given.length)]}`;
-        const position = POSITIONS[dept.name][Math.floor(rng() * POSITIONS[dept.name].length)];
+        const posList = POSITIONS[dept.name] ?? [];
+        const position = posList[Math.floor(rng() * posList.length)]!;
         const seq = String(counts[factoryId]).padStart(4, "0");
         const birthYear = randInt(rng, 1975, 2005);
         const hireYear = randInt(rng, 2015, 2026);
@@ -202,13 +189,12 @@ export function generateEmployees(): GeneratedEmployee[] {
             .split(" ")
             .filter(Boolean)
             .slice(-2)
-            .join(".")}${counts[factoryId] % 7}@${DOMAINS[Math.floor(rng() * DOMAINS.length)]}`,
+            .join(".")}${counts[factoryId] % 7}@${DOMAINS[Math.floor(rng() * DOMAINS.length)]!}`,
           phone: `+84 9${randInt(rng, 10, 99)} ${randInt(rng, 100, 999)} ${randInt(rng, 100, 999)}`,
           employmentStatus: statusRoll(),
           hireDate: `${hireYear}-${String(randInt(rng, 1, 12)).padStart(2, "0")}-${String(randInt(rng, 1, 28)).padStart(2, "0")}`,
           dateOfBirth: `${birthYear}-${String(randInt(rng, 1, 12)).padStart(2, "0")}-${String(randInt(rng, 1, 28)).padStart(2, "0")}`,
           gender,
-          address: `${randInt(rng, 1, 320)} ${STREETS[Math.floor(rng() * STREETS.length)]} St., Ward ${randInt(rng, 1, 15)}`,
         });
       }
     }

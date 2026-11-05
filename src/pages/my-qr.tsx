@@ -28,11 +28,11 @@ export function MyQrPage() {
 
   // Link to employee
   const employeeId = user.linkedEmployeeId ?? "TMC-BD-0001";
-  const employeeQuery = useAsync(() => employeeService.getById(employeeId), [employeeId, version]);
-  const qrQuery = useAsync(() => qrCodeService.getByEmployee(employeeId), [employeeId, version]);
+  const detailQuery = useAsync(() => employeeService.getById(employeeId), [employeeId, version]);
 
-  const qr = qrQuery.data;
-  const emp = employeeQuery.data;
+  const emp = detailQuery.data?.employee;
+  const qr = detailQuery.data?.qrCode ?? undefined;
+  const displayName = emp?.fullName ?? user.name;
 
   async function handleDownload() {
     if (!qr || !svgRef.current) return;
@@ -73,9 +73,9 @@ export function MyQrPage() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mb-2">
               <Smartphone className="h-6 w-6" />
             </div>
-            <CardTitle>{emp?.fullName ?? user.name}</CardTitle>
+            <CardTitle>{displayName}</CardTitle>
             <CardDescription className="text-xs">
-              {emp?.id} · {emp?.departmentName ?? "Staff"} ·{" "}
+              {emp?.id ?? employeeId} · {emp?.departmentName ?? "Staff"} ·{" "}
               {emp?.factoryId === "BD" ? "Bình Dương" : "Long An"}
             </CardDescription>
           </CardHeader>

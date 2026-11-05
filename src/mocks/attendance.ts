@@ -1,7 +1,7 @@
 import type { AttendanceTransaction, DenialReason, QrValidation, TransactionStatus } from "@/types";
 import { EMPLOYEES } from "./data";
 import { GATES } from "./gates";
-import { chance, mulberry32, pick, randInt, seededRngFor, utcAsLocal, type Rng } from "./rand";
+import { chance, mulberry32, pick, randInt, seededRngFor, utcAsLocal, ymd, type Rng } from "./rand";
 
 const DAYS_BACK = 14;
 
@@ -56,8 +56,8 @@ function generateTransactions(): AttendanceTransaction[] {
     LA: { entry: [], exit: [] },
   };
   for (const g of GATES) {
-    if (g.type === "EXIT") gatesByFactory[g.factoryId].exit.push(g);
-    else gatesByFactory[g.factoryId].entry.push(g);
+    if (g.type === "EXIT") gatesByFactory[g.factoryId]!.exit.push(g);
+    else gatesByFactory[g.factoryId]!.entry.push(g);
   }
   let seq = 0;
   const nextId = () => `TX-${String(++seq).padStart(6, "0")}`;
@@ -72,9 +72,9 @@ function generateTransactions(): AttendanceTransaction[] {
       const isToday = dayKey === days[days.length - 1];
       const plan = planDay(empRng, dayKey, isToday);
       if (!plan) continue;
-      const dateParts = dayKey.split("-").map(Number);
+      const dateParts = ymd(dayKey);
       if (plan.checkIn) {
-        const gate = pick(empRng, gatesByFactory[emp.factoryId].entry);
+        const gate = pick(empRng, gatesByFactory[emp.factoryId]!.entry);
         const denied = chance(empRng, 0.008);
         if (denied) {
           const reason = pickDenial(empRng);
@@ -101,7 +101,7 @@ function generateTransactions(): AttendanceTransaction[] {
           });
           continue;
         }
-        const [h, m] = plan.checkIn.split(":").map(Number);
+        const [h = 0, m = 0] = plan.checkIn.split(":").map(Number);
         out.push({
           id: nextId(),
           employeeId: emp.id,
@@ -117,8 +117,8 @@ function generateTransactions(): AttendanceTransaction[] {
         });
       }
       if (plan.checkOut) {
-        const gate = pick(empRng, gatesByFactory[emp.factoryId].exit);
-        const [h, m] = plan.checkOut.split(":").map(Number);
+        const gate = pick(empRng, gatesByFactory[emp.factoryId]!.exit);
+        const [h = 0, m = 0] = plan.checkOut.split(":").map(Number);
         out.push({
           id: nextId(),
           employeeId: emp.id,
@@ -139,7 +139,7 @@ function generateTransactions(): AttendanceTransaction[] {
   // Inject unknown-QR denials (no employee behind the card).
   for (let i = 0; i < 18; i++) {
     const dayKey = pick(rng, days);
-    const d = dayKey.split("-").map(Number);
+    const d = ymd(dayKey);
     const gate = pick(
       rng,
       GATES.filter((g) => g.controllerStatus === "ONLINE"),
@@ -164,7 +164,7 @@ function generateTransactions(): AttendanceTransaction[] {
   // Inject a handful of failed transactions on the offline/under-maintenance gates.
   for (let i = 0; i < 8; i++) {
     const dayKey = pick(rng, days);
-    const d = dayKey.split("-").map(Number);
+    const d = ymd(dayKey);
     const gate = pick(
       rng,
       GATES.filter((g) => g.controllerStatus !== "ONLINE"),

@@ -100,15 +100,15 @@ export function EmployeesPage() {
 
   const columns: Column<EmployeeRow>[] = [
     {
-      key: "id",
+      id: "id",
       header: "Employee ID",
-      render: (r) => <span className="font-mono text-xs">{r.id}</span>,
+      cell: (r) => <span className="font-mono text-xs">{r.id}</span>,
       sort: (r) => r.id,
     },
     {
-      key: "name",
+      id: "name",
       header: "Full Name",
-      render: (r) => (
+      cell: (r) => (
         <span className="flex items-center gap-2">
           <EmployeeAvatar name={r.fullName} />
           <span className="font-medium">{r.fullName}</span>
@@ -117,34 +117,34 @@ export function EmployeesPage() {
       sort: (r) => r.fullName,
     },
     {
-      key: "dept",
+      id: "dept",
       header: "Department",
-      render: (r) => r.departmentName,
+      cell: (r) => r.departmentName,
       sort: (r) => r.departmentName,
     },
-    { key: "pos", header: "Position", render: (r) => r.position },
+    { id: "pos", header: "Position", cell: (r) => r.position },
     {
-      key: "factory",
+      id: "factory",
       header: "Factory",
-      render: (r) => (r.factoryId === "BD" ? "Binh Duong" : "Long An"),
+      cell: (r) => (r.factoryId === "BD" ? "Binh Duong" : "Long An"),
       sort: (r) => r.factoryId,
     },
-    { key: "email", header: "Email", render: (r) => <span className="text-xs">{r.email}</span> },
+    { id: "email", header: "Email", cell: (r) => <span className="text-xs">{r.email}</span> },
     {
-      key: "phone",
+      id: "phone",
       header: "Phone",
-      render: (r) => <span className="text-xs tabular-nums">{r.phone}</span>,
+      cell: (r) => <span className="text-xs tabular-nums">{r.phone}</span>,
     },
     {
-      key: "status",
+      id: "status",
       header: "Status",
-      render: (r) => <EmploymentBadge status={r.employmentStatus} />,
+      cell: (r) => <EmploymentBadge status={r.employmentStatus} />,
       sort: (r) => r.employmentStatus,
     },
     {
-      key: "qr",
+      id: "qr",
       header: "QR Status",
-      render: (r) =>
+      cell: (r) =>
         r.qrStatus ? (
           <QrBadge status={r.qrStatus} />
         ) : (
@@ -152,9 +152,9 @@ export function EmployeesPage() {
         ),
     },
     {
-      key: "actions",
+      id: "actions",
       header: "",
-      render: (r) => (
+      cell: (r) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -218,7 +218,7 @@ export function EmployeesPage() {
 
       <DataTable
         columns={columns}
-        rows={employees.data ?? []}
+        data={employees.data ?? []}
         rowKey={(r) => r.id}
         loading={employees.loading}
         pageSize={10}

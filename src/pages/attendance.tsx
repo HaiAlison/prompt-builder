@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DataTable, type Column } from "@/components/common/data-table";
-import { DenialBadge, EventTypeBadge, TransactionBadge } from "@/components/common/status-badge";
+import { AttendanceBadge, DenialBadge, EventTypeBadge, TransactionBadge } from "@/components/common/status-badge";
 import { FilterSelect, PageHeader } from "@/components/common/filter-select";
 import { ScanSimulatorDialog } from "@/components/attendance/scan-simulator";
 import { attendanceService } from "@/services/attendance.service";
@@ -120,15 +120,15 @@ export function AttendancePage() {
 
   const txColumns: Column<AttendanceTransaction>[] = [
     {
-      key: "id",
+      id: "id",
       header: "Transaction ID",
-      render: (t) => <span className="font-mono text-xs">{t.id}</span>,
+      cell: (t) => <span className="font-mono text-xs">{t.id}</span>,
       sort: (t) => t.id,
     },
     {
-      key: "emp",
+      id: "emp",
       header: "Employee",
-      render: (t) => (
+      cell: (t) => (
         <span>
           <span className="font-medium">{t.employeeName}</span>
           <span className="ml-2 text-xs text-muted-foreground">{t.employeeId}</span>
@@ -137,37 +137,37 @@ export function AttendancePage() {
       sort: (t) => t.employeeName,
     },
     {
-      key: "factory",
+      id: "factory",
       header: "Factory",
-      render: (t) => (t.factoryId === "BD" ? "Binh Duong" : "Long An"),
+      cell: (t) => (t.factoryId === "BD" ? "Binh Duong" : "Long An"),
     },
     {
-      key: "gate",
+      id: "gate",
       header: "Gate Station",
-      render: (t) => <span className="text-xs">{t.gateName}</span>,
+      cell: (t) => <span className="text-xs">{t.gateName}</span>,
     },
-    { key: "event", header: "Event Type", render: (t) => <EventTypeBadge type={t.eventType} /> },
+    { id: "event", header: "Event Type", cell: (t) => <EventTypeBadge type={t.eventType} /> },
     {
-      key: "time",
+      id: "time",
       header: "Timestamp",
-      render: (t) => <span className="text-xs tabular-nums">{formatDateTime(t.timestamp)}</span>,
+      cell: (t) => <span className="text-xs tabular-nums">{formatDateTime(t.timestamp)}</span>,
       sort: (t) => t.timestamp,
     },
     {
-      key: "qr",
+      id: "qr",
       header: "QR Validation",
-      render: (t) => <span className="text-xs">{t.qrValidation}</span>,
+      cell: (t) => <span className="text-xs">{t.qrValidation}</span>,
     },
     {
-      key: "status",
+      id: "status",
       header: "Status",
-      render: (t) => <TransactionBadge status={t.status} />,
+      cell: (t) => <TransactionBadge status={t.status} />,
       sort: (t) => t.status,
     },
     {
-      key: "view",
+      id: "view",
       header: "",
-      render: (t) => (
+      cell: (t) => (
         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setDetail(t)}>
           View
         </Button>
@@ -177,9 +177,9 @@ export function AttendancePage() {
 
   const sumColumns: Column<DailySummary>[] = [
     {
-      key: "emp",
+      id: "emp",
       header: "Employee",
-      render: (s) => (
+      cell: (s) => (
         <span>
           <span className="font-medium">{s.employeeName}</span>
           <span className="ml-2 text-xs text-muted-foreground">{s.employeeId}</span>
@@ -188,34 +188,34 @@ export function AttendancePage() {
       sort: (s) => s.employeeName,
     },
     {
-      key: "in",
+      id: "in",
       header: "First Check-in",
-      render: (s) => (
+      cell: (s) => (
         <span className="tabular-nums">{s.firstCheckIn ? formatTime(s.firstCheckIn) : "—"}</span>
       ),
     },
     {
-      key: "out",
+      id: "out",
       header: "Last Check-out",
-      render: (s) => (
+      cell: (s) => (
         <span className="tabular-nums">{s.lastCheckOut ? formatTime(s.lastCheckOut) : "—"}</span>
       ),
     },
     {
-      key: "dur",
+      id: "dur",
       header: "Working Duration",
-      render: (s) => <span className="tabular-nums">{formatDuration(s.workedMinutes)}</span>,
+      cell: (s) => <span className="tabular-nums">{formatDuration(s.workedMinutes)}</span>,
       sort: (s) => s.workedMinutes,
     },
     {
-      key: "status",
+      id: "status",
       header: "Attendance Status",
-      render: (s) => (<TransactionBadge status={s.status} />) as never,
+      cell: (s) => <AttendanceBadge status={s.status} />,
     },
     {
-      key: "late",
+      id: "late",
       header: "Late Duration",
-      render: (s) => <span className="tabular-nums">{formatDuration(s.lateMinutes)}</span>,
+      cell: (s) => <span className="tabular-nums">{formatDuration(s.lateMinutes)}</span>,
       sort: (s) => s.lateMinutes,
     },
   ];
@@ -245,7 +245,7 @@ export function AttendancePage() {
         <TabsContent value="transactions" className="mt-4">
           <DataTable
             columns={txColumns}
-            rows={transactions.data ?? []}
+            data={transactions.data ?? []}
             rowKey={(t) => t.id}
             loading={transactions.loading}
             pageSize={15}
@@ -378,7 +378,7 @@ export function AttendancePage() {
           </div>
           <DataTable
             columns={sumColumns}
-            rows={summaries.data ?? []}
+            data={summaries.data ?? []}
             rowKey={(s) => s.employeeId}
             loading={summaries.loading}
             pageSize={15}
@@ -395,7 +395,7 @@ export function AttendancePage() {
             />
             <SyncCard
               label="Synchronized"
-              value={formatNumber(sync.data?.[1].synced ?? 0)}
+              value={sync.data?.[1].synced ?? 0}
               tone="success"
             />
             <SyncCard

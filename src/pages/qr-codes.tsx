@@ -83,53 +83,53 @@ export function QrCodesPage() {
 
   const columns: Column<QrCode>[] = [
     {
-      key: "empId",
+      id: "empId",
       header: "Employee ID",
-      render: (r) => <span className="font-mono text-xs">{r.employeeId}</span>,
+      cell: (r) => <span className="font-mono text-xs">{r.employeeId}</span>,
       sort: (r) => r.employeeId,
     },
     {
-      key: "name",
+      id: "name",
       header: "Employee Name",
-      render: (r) => <span className="font-medium">{r.employeeName}</span>,
+      cell: (r) => <span className="font-medium">{r.employeeName}</span>,
       sort: (r) => r.employeeName,
     },
     {
-      key: "qrId",
+      id: "qrId",
       header: "QR Code ID",
-      render: (r) => <span className="font-mono text-xs">{r.id}</span>,
+      cell: (r) => <span className="font-mono text-xs">{r.id}</span>,
       sort: (r) => r.id,
     },
     {
-      key: "status",
+      id: "status",
       header: "Status",
-      render: (r) => <QrBadge status={r.status} />,
+      cell: (r) => <QrBadge status={r.status} />,
       sort: (r) => r.status,
     },
     {
-      key: "created",
+      id: "created",
       header: "Created At",
-      render: (r) => <span className="text-xs">{formatDate(r.createdAt)}</span>,
+      cell: (r) => <span className="text-xs">{formatDate(r.createdAt)}</span>,
       sort: (r) => r.createdAt,
     },
     {
-      key: "expires",
+      id: "expires",
       header: "Expiration Date",
-      render: (r) => <span className="text-xs">{formatDate(r.expiresAt)}</span>,
+      cell: (r) => <span className="text-xs">{formatDate(r.expiresAt)}</span>,
       sort: (r) => r.expiresAt,
     },
     {
-      key: "used",
+      id: "used",
       header: "Last Used At",
-      render: (r) => (
+      cell: (r) => (
         <span className="text-xs">{r.lastUsedAt ? formatDate(r.lastUsedAt) : "Never"}</span>
       ),
       sort: (r) => r.lastUsedAt ?? "",
     },
     {
-      key: "actions",
+      id: "actions",
       header: "",
-      render: (r) => (
+      cell: (r) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -181,7 +181,7 @@ export function QrCodesPage() {
 
       <DataTable
         columns={columns}
-        rows={codes.data ?? []}
+        data={codes.data ?? []}
         rowKey={(r) => r.id}
         loading={codes.loading}
         pageSize={10}

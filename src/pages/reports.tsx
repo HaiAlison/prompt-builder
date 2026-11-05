@@ -42,14 +42,14 @@ export function ReportsPage() {
     [month, factory, department, version],
   );
 
-  const factoryReport = useAsync(() => reportService.factoryReport(), [version]);
+  const factoryReport = useAsync(() => reportService.factoryReport(month), [month, version]);
 
   const accessReport = useAsync(
-    () => reportService.accessControlReport(undefined, undefined, factory),
-    [factory, version],
+    () => reportService.accessControlReport(month, factory),
+    [month, factory, version],
   );
 
-  const payrollExports = useAsync(() => reportService.getPayrollExports(), [version]);
+  const payrollExports = useAsync(() => reportService.exportHistory(), [version]);
 
   async function handleExportPayroll() {
     setExporting(true);
@@ -68,17 +68,17 @@ export function ReportsPage() {
     downloadCsv(
       `monthly-attendance-${month}.csv`,
       ['Employee ID', 'Full Name', 'Department', 'Factory', 'Working Days', 'Present Days', 'Late Days', 'Absent Days', 'Total Hours'],
-      monthlyReport.data.map((r) => ({
-        "Employee ID": r.employeeId,
-        Name: r.employeeName,
-        Department: r.departmentName,
-        Factory: r.factoryId,
-        "Working Days": r.workingDays,
-        "Present Days": r.presentDays,
-        "Late Days": r.lateDays,
-        "Absent Days": r.absentDays,
-        "Total Hours": r.totalHours,
-      })),
+      monthlyReport.data.map((r) => [
+        r.employeeId,
+        r.employeeName,
+        r.departmentName,
+        r.factoryId,
+        r.workingDays,
+        r.presentDays,
+        r.lateDays,
+        r.absentDays,
+        r.totalHours,
+      ]),
     );
   }
 
