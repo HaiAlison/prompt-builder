@@ -40,6 +40,12 @@ export const qrCodeService = {
     );
   },
 
+  async getByEmployee(employeeId: string): Promise<QrCode | undefined> {
+    return delay(
+      QR_CODES.find((r) => r.employeeId === employeeId),
+      60,
+    );
+  },
   /** Issues a fresh code for an employee; previously active codes are revoked. */
   async generateForEmployee(employeeId: string): Promise<QrCode> {
     const emp = EMPLOYEE_BY_ID.get(employeeId);

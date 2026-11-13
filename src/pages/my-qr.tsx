@@ -27,7 +27,7 @@ export function MyQrPage() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Link to employee
-  const employeeId = user.linkedEmployeeId ?? "TMC-BD-0001";
+  const employeeId = user?.linkedEmployeeId ?? "TMC-BD-0001";
   const employeeQuery = useAsync(() => employeeService.getById(employeeId), [employeeId, version]);
   const qrQuery = useAsync(() => qrCodeService.getByEmployee(employeeId), [employeeId, version]);
 
@@ -73,7 +73,7 @@ export function MyQrPage() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mb-2">
               <Smartphone className="h-6 w-6" />
             </div>
-            <CardTitle>{emp?.fullName ?? user.name}</CardTitle>
+            <CardTitle>{emp?.fullName ?? user?.name ?? "Employee"}</CardTitle>
             <CardDescription className="text-xs">
               {emp?.id} · {emp?.departmentName ?? "Staff"} ·{" "}
               {emp?.factoryId === "BD" ? "Bình Dương" : "Long An"}

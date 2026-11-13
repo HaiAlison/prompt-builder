@@ -55,7 +55,7 @@ const FACTORY_OPTIONS: { value: FactoryFilter; label: string }[] = [
 ];
 
 export function AppHeader() {
-  const { factoryFilter, setFactoryFilter, user, setUser, network, setNetwork } = useAppState();
+  const { factoryFilter, setFactoryFilter, user, setUser, logout: appLogout, network, setNetwork } = useAppState();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -78,16 +78,15 @@ export function AppHeader() {
   }, [search, employees.data]);
 
   const unread = NOTIFICATIONS.filter((n) => !readIds.has(n.id)).length;
-  const role = ROLE_BY_NAME.get(user.role);
+  const role = user ? ROLE_BY_NAME.get(user.role) : undefined;
 
   function logout() {
-    toast.success("Signed out (mock authentication)");
-    const employeeUser = MOCK_USERS.find((u) => u.role === "EMPLOYEE")!;
-    setUser(employeeUser);
-    navigate({ to: "/my-qr" });
+    appLogout();
+    toast.success("Signed out successfully");
+    navigate({ to: "/login" });
   }
 
-  const initials = user.name
+  const initials = (user?.name ?? "User")
     .split(" ")
     .slice(-2)
     .map((p) => p[0])
@@ -291,7 +290,7 @@ export function AppHeader() {
             </Avatar>
             <span className="hidden text-left sm:block">
               <span className="block max-w-[140px] truncate text-xs font-semibold leading-tight">
-                {user.name}
+                {user?.name}
               </span>
               <span className="block text-[11px] leading-tight text-muted-foreground">
                 {role?.label}
@@ -302,8 +301,8 @@ export function AppHeader() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-60">
           <DropdownMenuLabel>
-            <p className="text-sm font-semibold">{user.name}</p>
-            <p className="text-xs font-normal text-muted-foreground">{user.email}</p>
+            <p className="text-sm font-semibold">{user?.name}</p>
+            <p className="text-xs font-normal text-muted-foreground">{user?.email}</p>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuSub>

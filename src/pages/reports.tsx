@@ -54,7 +54,7 @@ export function ReportsPage() {
   async function handleExportPayroll() {
     setExporting(true);
     try {
-      await reportService.exportPayroll(month, user.name);
+      await reportService.exportPayroll(month, user?.name ?? "Authorized User");
       toast.success(`Payroll export for ${month} generated successfully`);
     } catch {
       toast.error("Failed to generate payroll export");

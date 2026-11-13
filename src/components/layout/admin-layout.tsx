@@ -12,8 +12,8 @@ export function AdminLayout() {
   const { user } = useAppState();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const moduleKey = pathname.split("/").filter(Boolean)[0] as ModuleKey | undefined;
-  const role = ROLE_BY_NAME.get(user.role);
-  const allowed = moduleKey === "my-qr" || (moduleKey && role?.permissions.includes(moduleKey));
+  const role = user ? ROLE_BY_NAME.get(user.role) : undefined;
+  const allowed = !user || moduleKey === "my-qr" || (moduleKey && role?.permissions.includes(moduleKey));
 
   return (
     <SidebarProvider>

@@ -62,7 +62,7 @@ const SECTIONS: { label: string; items: NavItem[] }[] = [
 export function AppSidebar() {
   const { user } = useAppState();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const role = ROLE_BY_NAME.get(user.role);
+  const role = user ? ROLE_BY_NAME.get(user.role) : undefined;
 
   function isActive(url: string) {
     return pathname === url || pathname.startsWith(url + "/");
