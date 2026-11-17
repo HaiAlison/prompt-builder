@@ -93,7 +93,7 @@ export function AttendancePage() {
       `tmc-transactions-${new Date().toISOString().slice(0, 10)}.csv`,
       [
         "Transaction ID",
-        "Employee ID",
+        "Employee Code",
         "Employee Name",
         "Factory",
         "Gate",
@@ -105,7 +105,7 @@ export function AttendancePage() {
       ],
       rows.map((t) => [
         t.id,
-        t.employeeId,
+        t.employeeCode,
         t.employeeName,
         t.factoryId,
         t.gateName,
@@ -132,7 +132,7 @@ export function AttendancePage() {
       render: (t) => (
         <span>
           <span className="font-medium">{t.employeeName}</span>
-          <span className="ml-2 text-xs text-muted-foreground">{t.employeeId}</span>
+          <span className="ml-2 text-xs text-muted-foreground">{t.employeeCode}</span>
         </span>
       ),
       sort: (t) => t.employeeName,
@@ -231,7 +231,7 @@ export function AttendancePage() {
             <Button variant="outline" onClick={exportTransactions}>
               <Download className="h-4 w-4" /> Export CSV
             </Button>
-            <ScanSimulatorDialog />
+            <ScanSimulatorDialog gates={gates.data || []} />
           </>
         }
       />
@@ -471,7 +471,7 @@ function SyncCard({
   tone,
 }: {
   label: string;
-  value: number;
+  value: any;
   tone: "warning" | "success" | "destructive";
 }) {
   const color =
@@ -504,9 +504,9 @@ function TransactionDetailDialog({
         </DialogHeader>
         {tx && (
           <div className="grid gap-x-6 gap-y-2 text-sm">
-            <Row label="Employee" value={`${tx.employeeName} (${tx.employeeId})`} />
-            <Row label="Factory" value={tx.factoryId === "BD" ? "Binh Duong" : "Long An"} />
-            <Row label="Gate station" value={`${tx.gateId} · ${tx.gateName}`} />
+            <Row label="Employee" value={`${tx.employeeName} (${tx.employeeCode})`} />
+            <Row label="Factory" value={tx.factoryName} />
+            <Row label="Gate station" value={`${tx.gateCode} · ${tx.gateName}`} />
             <Row label="Event type" value={<EventTypeBadge type={tx.eventType} />} />
             <Row label="Timestamp" value={formatDateTime(tx.timestamp)} />
             <Row label="QR validation" value={tx.qrValidation} />

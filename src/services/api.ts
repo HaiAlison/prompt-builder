@@ -21,13 +21,53 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
     _retry?: boolean;
 }
 
-// Request Interceptor: Tự động đính kèm accessToken
+/**
+ * Remove empty, undefined, null, or placeholder ("ALL") parameters from query object
+ * so they do not appear in the outgoing URL query string.
+ */
+export function cleanQueryParams(params: unknown): Record<string, unknown> | undefined {
+    if (!params || typeof params !== "object") return undefined;
+
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(params as Record<string, unknown>)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+
+        if (typeof value === "string") {
+            const trimmed = value.trim();
+            // Drop empty strings or placeholder "ALL"
+            if (trimmed === "" || trimmed.toUpperCase() === "ALL") {
+                continue;
+            }
+            cleaned[key] = trimmed;
+        } else if (Array.isArray(value)) {
+            const filtered = value.filter(
+                (v) => v !== undefined && v !== null && v !== "" && v !== "ALL",
+            );
+            if (filtered.length > 0) {
+                cleaned[key] = filtered;
+            }
+        } else {
+            cleaned[key] = value;
+        }
+    }
+
+    return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+}
+
+// Request Interceptor: Tự động đính kèm accessToken & loại bỏ empty/ALL params
 axiosInstance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         const token = authService.getStoredToken();
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
+        if (config.params) {
+            config.params = cleanQueryParams(config.params);
+        }
+
         return config;
     },
     (error: AxiosError) => Promise.reject(error),

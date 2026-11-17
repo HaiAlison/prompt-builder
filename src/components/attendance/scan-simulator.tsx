@@ -24,20 +24,19 @@ import {
 import { QrBadge, TransactionBadge, EventTypeBadge } from "@/components/common/status-badge";
 import { EmployeeAvatar } from "@/components/common/employee-avatar";
 import { attendanceService } from "@/services/attendance.service";
-import { employeeService } from "@/services/employee.service";
 import { qrCodeService } from "@/services/qr-code.service";
 import { GATES } from "@/mocks/gates";
 import { useAppState } from "@/store/app-state";
-import { useAsync } from "@/hooks/use-async";
 import { formatDateTime, EVENT_TYPE_LABEL, DENIAL_REASON_LABEL } from "@/utils/format";
-import type { AttendanceTransaction, EventType, ScanResult } from "@/types";
+import type { AttendanceTransaction, EventType, GateStation, ScanResult } from "@/types";
+import { useEmployee } from "@/hooks/use-employee";
 
 /**
  * Simulates a security scanner at a gate: pick a person + gate + event and the
  * service validates the QR exactly like the future backend will. Includes
  * one-click bad-scenario chips (expired/revoked/unknown/inactive employee).
  */
-export function ScanSimulatorDialog({ children, defaultGateId }: { children?: React.ReactNode, defaultGateId?: string }) {
+export function ScanSimulatorDialog({ children, gates, defaultGateId, }: { children?: React.ReactNode, defaultGateId?: string, gates: GateStation[] }) {
   const { network, version } = useAppState();
   const [open, setOpen] = useState(false);
   const [employeeQuery, setEmployeeQuery] = useState("");
@@ -48,39 +47,32 @@ export function ScanSimulatorDialog({ children, defaultGateId }: { children?: Re
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
 
-  const employees = useAsync(() => employeeService.list(), [open, version]);
-  const qrCodes = useAsync(() => qrCodeService.list(), [open, version]);
+  const { employees } = useEmployee();
 
   const matches = useMemo(() => {
     const q = employeeQuery.trim().toLowerCase();
     if (!q) return [];
-    return (employees.data ?? [])
-      .filter((e) => e.id.toLowerCase().includes(q) || e.fullName.toLowerCase().includes(q))
+    return (employees?.results ?? [])
+      .filter((e) => e.code.toLowerCase().includes(q) || e.fullName.toLowerCase().includes(q))
       .slice(0, 5);
-  }, [employeeQuery, employees.data]);
+  }, [employeeQuery, employees?.results]);
 
-  const selected = (employees.data ?? []).find((e) => e.id === selectedEmployeeId);
-  const selectedQr = (qrCodes.data ?? []).find((q) => q.employeeId === selectedEmployeeId);
-
-  const scenarioEmployee = (predicate: (qrStatus: string) => boolean) => {
-    const qr = (qrCodes.data ?? []).find((q) => predicate(q.status));
-    return qr?.employeeId ?? null;
-  };
+  const selected = (employees?.results ?? []).find((e) => e.id === selectedEmployeeId);
 
   const scenarioChips: { label: string; employeeId: string | null; payload: string | null }[] = [
-    { label: "Expired QR", employeeId: scenarioEmployee((s) => s === "EXPIRED"), payload: null },
-    { label: "Revoked QR", employeeId: scenarioEmployee((s) => s === "REVOKED"), payload: null },
+    { label: "Expired QR", employeeId: null, payload: "tmc://v1/bd/token-expired-sample" },
+    { label: "Revoked QR", employeeId: null, payload: "tmc://v1/bd/token-revoked-sample" },
     {
       label: "Inactive employee",
       employeeId:
-        (employees.data ?? []).find(
+        (employees?.results ?? []).find(
           (e) => e.employmentStatus === "SUSPENDED" || e.employmentStatus === "TERMINATED",
         )?.id ?? null,
       payload: null,
     },
     { label: "Unknown QR", employeeId: null, payload: "TMCQR2|UNKNOWNFAKEPAYLOAD123456" },
     { label: "Unauthorized gate", employeeId: null, payload: null },
-  ].filter((c) => c.employeeId || c.payload) as {
+  ].filter((c) => c.employeeId || c.payload || c.label === "Unauthorized gate") as {
     label: string;
     employeeId: string | null;
     payload: string | null;
@@ -96,8 +88,12 @@ export function ScanSimulatorDialog({ children, defaultGateId }: { children?: Re
     try {
       let payload = payloadOverride;
       if (!payload) {
-        const qr = (qrCodes.data ?? []).find((q) => q.employeeId === selectedEmployeeId);
-        payload = qr?.payload ?? "TMCQR2|NOQRASSIGNED";
+        if (selectedEmployeeId) {
+          const qr = await qrCodeService.getByEmployee(selectedEmployeeId);
+          payload = qr?.payload ?? "tmc://v1/bd/no-qr-assigned";
+        } else {
+          payload = "tmc://v1/bd/no-qr-assigned";
+        }
       }
       const res = await attendanceService.processScan({
         qrPayload: payload,
@@ -106,6 +102,13 @@ export function ScanSimulatorDialog({ children, defaultGateId }: { children?: Re
         offline: network === "OFFLINE",
       });
       setResult(res);
+    } catch (err: any) {
+      const errData = err?.response?.data;
+      if (errData?.transaction) {
+        setResult(errData);
+      } else {
+        toast.error(errData?.message || err?.message || "Failed to process scan");
+      }
     } finally {
       setBusy(false);
     }
@@ -118,9 +121,17 @@ export function ScanSimulatorDialog({ children, defaultGateId }: { children?: Re
     setResult(null);
     if (chip.label === "Unauthorized gate") {
       // Choose an EXIT-only gate with a CHECK_IN to trigger the gate rule denial.
-      const exitGate = GATES.find((g) => g.type === "EXIT")!;
-      setGateId(exitGate.id);
-      setEventType("CHECK_IN");
+      const exitGate = gates.find((g) => g.type === "EXIT");
+      if (exitGate) {
+        setGateId(exitGate.id);
+        setEventType("CHECK_IN");
+      }
+      const activeEmp = (employees?.results ?? []).find(
+        (e) => e.employmentStatus === "ACTIVE" || e.employmentStatus === "PROBATION",
+      );
+      if (activeEmp) {
+        setSelectedEmployeeId(activeEmp.id);
+      }
     }
   }
 
@@ -171,7 +182,7 @@ export function ScanSimulatorDialog({ children, defaultGateId }: { children?: Re
             </div>
             <Input
               placeholder="Search employee by ID or name…"
-              value={selected ? `${selected.id} — ${selected.fullName}` : employeeQuery}
+              value={selected ? `${selected.code} — ${selected.fullName}` : employeeQuery}
               onChange={(e) => {
                 setEmployeeQuery(e.target.value);
                 setSelectedEmployeeId(null);
@@ -193,33 +204,33 @@ export function ScanSimulatorDialog({ children, defaultGateId }: { children?: Re
                   >
                     <EmployeeAvatar name={m.fullName} className="h-6 w-6" />
                     <span className="truncate">{m.fullName}</span>
-                    <span className="ml-auto text-xs text-muted-foreground">{m.id}</span>
+                    <span className="ml-auto text-xs text-muted-foreground">{m.code}</span>
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid gap-1.5 min-w-0">
               <Label>Gate station</Label>
               <Select value={gateId} onValueChange={setGateId}>
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger className="w-full min-w-0 [&>span]:truncate">
+                  <SelectValue placeholder="Select gate" />
                 </SelectTrigger>
-                <SelectContent>
-                  {GATES.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>
-                      {g.id} · {g.name}
+                <SelectContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
+                  {(gates ?? []).map((g) => (
+                    <SelectItem key={g.id} value={g.id} className="cursor-pointer">
+                      <span className="truncate">{g.code ? `${g.code} · ${g.name}` : `${g.id} · ${g.name}`}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid gap-1.5 min-w-0">
               <Label>Event type</Label>
               <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full min-w-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -259,7 +270,8 @@ export function ScanSimulatorDialog({ children, defaultGateId }: { children?: Re
                 <span className="font-medium text-foreground">{tx.id}</span>
                 <span>Employee</span>
                 <span className="font-medium text-foreground">
-                  {tx.employeeName} ({tx.employeeId})
+                  {tx.employeeName}{" "}
+                  {tx.employeeCode ? `(${tx.employeeCode})` : tx.employeeId ? `(${tx.employeeId})` : ""}
                 </span>
                 <span>Gate</span>
                 <span className="font-medium text-foreground">{tx.gateName}</span>
@@ -279,7 +291,7 @@ export function ScanSimulatorDialog({ children, defaultGateId }: { children?: Re
                   <>
                     <span>Reason</span>
                     <span className="font-medium text-foreground">
-                      {DENIAL_REASON_LABEL[tx.denialReason]}
+                      {(DENIAL_REASON_LABEL as Record<string, string>)[tx.denialReason] || tx.denialReason}
                     </span>
                   </>
                 )}

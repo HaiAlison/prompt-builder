@@ -74,8 +74,8 @@ const TX_TONE: Record<TransactionStatus, BadgeTone> = {
   FAILED: "destructive",
 };
 
-export const TransactionBadge = ({ status }: { status: TransactionStatus }) => (
-  <StatusBadge tone={TX_TONE[status]} label={TRANSACTION_STATUS_LABEL[status]} />
+export const TransactionBadge = ({ status }: { status: TransactionStatus | string }) => (
+  <StatusBadge tone={TX_TONE[status as TransactionStatus]} label={TRANSACTION_STATUS_LABEL[status as TransactionStatus]} />
 );
 
 const QR_TONE: Record<QrStatus, BadgeTone> = {
@@ -126,8 +126,8 @@ export const NetworkBadge = ({ status }: { status: NetworkStatus }) => (
   />
 );
 
-export const DenialBadge = ({ reason }: { reason: DenialReason }) => (
-  <StatusBadge tone="destructive" label={DENIAL_REASON_LABEL[reason]} />
+export const DenialBadge = ({ reason }: { reason: DenialReason | string }) => (
+  <StatusBadge tone="destructive" label={DENIAL_REASON_LABEL[reason as DenialReason]} />
 );
 
 const REPORT_TONE: Record<ReportStatus, BadgeTone> = {

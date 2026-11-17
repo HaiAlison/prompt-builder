@@ -3,6 +3,7 @@ import { QR_CODES, newQrPayload } from "@/mocks/qr-codes";
 import { EMPLOYEE_BY_ID } from "@/mocks/data";
 import { notifyDataChanged } from "./bus";
 import { DEFAULT_CONFIG } from "@/mocks/reports";
+import api from "./api";
 
 function delay<T>(value: T, ms = 90): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
@@ -41,10 +42,7 @@ export const qrCodeService = {
   },
 
   async getByEmployee(employeeId: string): Promise<QrCode | undefined> {
-    return delay(
-      QR_CODES.find((r) => r.employeeId === employeeId),
-      60,
-    );
+    return delay(await api.get(`qr-codes/employee/${employeeId}`), 60);
   },
   /** Issues a fresh code for an employee; previously active codes are revoked. */
   async generateForEmployee(employeeId: string): Promise<QrCode> {

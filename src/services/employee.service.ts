@@ -1,8 +1,9 @@
-import type { Employee, EmploymentStatus, FactoryFilter, QrStatus } from "@/types";
+import { IPaginatedResponse, type Employee, type EmploymentStatus, type FactoryFilter, type QrStatus } from "@/types";
 import { EMPLOYEE_BY_ID, EMPLOYEES } from "@/mocks/data";
 import { QR_BY_EMPLOYEE } from "@/mocks/qr-codes";
 import { notifyDataChanged } from "./bus";
 import { getEmployeeDailySummaries } from "./summary";
+import api from "./api";
 
 export interface EmployeeRow extends Employee {
   qrStatus: QrStatus | null;
@@ -24,20 +25,9 @@ function toRow(e: Employee): EmployeeRow {
 }
 
 export const employeeService = {
-  async list(params: EmployeeListParams = {}): Promise<EmployeeRow[]> {
-    const q = params.q?.trim().toLowerCase();
-    let rows = EMPLOYEES as Employee[];
-    if (params.factoryId && params.factoryId !== "ALL")
-      rows = rows.filter((e) => e.factoryId === params.factoryId);
-    if (params.departmentId && params.departmentId !== "ALL")
-      rows = rows.filter((e) => e.departmentId === params.departmentId);
-    if (params.employmentStatus && params.employmentStatus !== "ALL")
-      rows = rows.filter((e) => e.employmentStatus === params.employmentStatus);
-    if (q)
-      rows = rows.filter(
-        (e) => e.id.toLowerCase().includes(q) || e.fullName.toLowerCase().includes(q),
-      );
-    return delay(rows.map(toRow));
+  async list(params: EmployeeListParams = {}): Promise<IPaginatedResponse<EmployeeRow>> {
+    let rows = await api.get<IPaginatedResponse<EmployeeRow>>('/employees', { params });
+    return delay(rows);
   },
 
   async getById(id: string) {
@@ -59,8 +49,6 @@ export const employeeService = {
         return Number.isFinite(n) ? Math.max(max, n) : max;
       }, 0) + 1;
     const emp: Employee = { ...input, id: `TMC-${factoryId}-${String(seq).padStart(4, "0")}` };
-    EMPLOYEES.push(emp);
-    EMPLOYEE_BY_ID.set(emp.id, emp);
     notifyDataChanged();
     return delay(emp, 350);
   },

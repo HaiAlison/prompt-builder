@@ -1,20 +1,16 @@
 import type {
   AttendanceTransaction,
   DashboardData,
-  DenialReason,
   EventType,
   FactoryFilter,
-  QrValidation,
+  IPaginatedResponse,
   ScanResult,
   TransactionStatus,
 } from "@/types";
-import { TRANSACTIONS, denialMessage, nowSim } from "@/mocks/attendance";
-import { GATE_BY_ID } from "@/mocks/gates";
-import { QR_BY_PAYLOAD } from "@/mocks/qr-codes";
-import { EMPLOYEE_BY_ID, EMPLOYEES } from "@/mocks/data";
+import { TRANSACTIONS } from "@/mocks/attendance";
+import { EMPLOYEE_BY_ID } from "@/mocks/data";
 import { notifyDataChanged } from "./bus";
 import { buildDailySummaries } from "./summary";
-import { dateKey, todayKey } from "@/utils/format";
 import api from "./api";
 
 function delay<T>(value: T, ms = 90): Promise<T> {
@@ -32,25 +28,17 @@ export interface TransactionParams {
   to?: string;
 }
 
-function validationFor(reason: DenialReason): QrValidation {
-  switch (reason) {
-    case "EXPIRED_QR": return "EXPIRED";
-    case "REVOKED_QR": return "REVOKED";
-    case "SUSPENDED_QR": return "SUSPENDED";
-    case "UNKNOWN_QR": return "UNKNOWN";
-    default: return "VALID";
-  }
-}
-
 export const attendanceService = {
   async listTransactions(params: TransactionParams = {}): Promise<AttendanceTransaction[]> {
-    const q = params.q?.trim().toLowerCase();
-    let results = await api.get<AttendanceTransaction[]>('/attendance/transactions', { params });
-    return delay(results.data.slice(0, 4000));
+    let rows = await api.get<IPaginatedResponse<AttendanceTransaction>>(
+      "/attendance/transactions",
+      { params },
+    );
+    return delay(rows.results);
   },
 
   async getTransaction(id: string): Promise<AttendanceTransaction | undefined> {
-    return delay(TRANSACTIONS.find((t) => t.id === id), 60);
+    return await api.get(`/attendance/transactions/${id}`);
   },
 
   async listDailySummaries(params: { date: string; factoryId?: FactoryFilter; departmentId?: string; q?: string }) {
@@ -71,8 +59,7 @@ export const attendanceService = {
   },
 
   /**
-   * Simulates a gate scanner reading a QR payload. Validation order mirrors
-   * the future backend: payload → QR status → employee status → gate rules.
+   * Process a QR scan event via POST /attendance/scan
    */
   async processScan(input: {
     qrPayload: string;
@@ -81,86 +68,56 @@ export const attendanceService = {
     /** When true the gate is offline and the transaction queues for sync. */
     offline?: boolean;
   }): Promise<ScanResult> {
-    const gate = GATE_BY_ID.get(input.gateId);
-    const base = {
-      factoryId: gate?.factoryId ?? "BD",
+    const payload = {
+      qrPayload: input.qrPayload,
       gateId: input.gateId,
-      gateName: gate?.name ?? input.gateId,
       eventType: input.eventType,
-      timestamp: nowSim().toISOString(),
+      offline: Boolean(input.offline),
     };
-    const fail = (
-      employeeId: string,
-      employeeName: string,
-      reason: DenialReason,
-      validation: QrValidation,
-      status: TransactionStatus = "DENIED",
-    ): ScanResult => {
-      const tx: AttendanceTransaction = {
-        id: nextTxId(),
-        employeeId,
-        employeeName,
-        ...base,
-        qrValidation: validation,
-        status,
-        denialReason: reason,
-        errorMessage: denialMessage(reason),
-        synced: input.offline ? false : status === "SUCCESS",
-      };
-      if (input.offline && status === "SUCCESS") tx.status = "PENDING";
-      TRANSACTIONS.unshift(tx);
+
+    try {
+      const res = await api.post<ScanResult | { data: ScanResult }>("/attendance/scan", payload);
+      const data: ScanResult = (res as any)?.data?.transaction ? (res as any).data : (res as ScanResult);
+
+      if (data?.transaction) {
+        if (!data.transaction.factoryId && data.transaction.factoryCode) {
+          data.transaction.factoryId = data.transaction.factoryCode;
+        }
+        if (!data.transaction.factoryCode && data.transaction.factoryId) {
+          data.transaction.factoryCode = data.transaction.factoryId;
+        }
+        if (!data.transaction.employeeCode && data.transaction.employeeId) {
+          data.transaction.employeeCode = data.transaction.employeeId;
+        }
+        TRANSACTIONS.unshift(data.transaction);
+      }
+
       notifyDataChanged();
-      return { transaction: tx, message: denialMessage(reason) };
-    };
+      return data;
+    } catch (err: any) {
+      const errorData = err?.response?.data;
+      const data: ScanResult | undefined = errorData?.transaction
+        ? errorData
+        : errorData?.data?.transaction
+          ? errorData.data
+          : undefined;
 
-    if (!gate) {
-      return fail("—", "—", "UNKNOWN_QR", "UNKNOWN", "FAILED");
+      if (data?.transaction) {
+        if (!data.transaction.factoryId && data.transaction.factoryCode) {
+          data.transaction.factoryId = data.transaction.factoryCode;
+        }
+        if (!data.transaction.factoryCode && data.transaction.factoryId) {
+          data.transaction.factoryCode = data.transaction.factoryId;
+        }
+        if (!data.transaction.employeeCode && data.transaction.employeeId) {
+          data.transaction.employeeCode = data.transaction.employeeId;
+        }
+        TRANSACTIONS.unshift(data.transaction);
+        notifyDataChanged();
+        return data;
+      }
+      throw err;
     }
-    if (gate.controllerStatus !== "ONLINE") {
-      return fail("—", "—", "UNKNOWN_QR", "NOT_VALIDATED", "FAILED");
-    }
-
-    const qr = QR_BY_PAYLOAD.get(input.qrPayload);
-    if (!qr) return fail("—", "Unknown QR card", "UNKNOWN_QR", "UNKNOWN");
-
-    const emp = EMPLOYEE_BY_ID.get(qr.employeeId);
-    if (!emp) return fail("—", "Unknown QR card", "UNKNOWN_QR", "UNKNOWN");
-
-    if (qr.status === "EXPIRED") return fail(emp.id, emp.fullName, "EXPIRED_QR", "EXPIRED");
-    if (qr.status === "REVOKED") return fail(emp.id, emp.fullName, "REVOKED_QR", "REVOKED");
-    if (qr.status === "SUSPENDED") return fail(emp.id, emp.fullName, "SUSPENDED_QR", "SUSPENDED");
-
-    if (emp.employmentStatus !== "ACTIVE" && emp.employmentStatus !== "PROBATION") {
-      return fail(emp.id, emp.fullName, "INACTIVE_EMPLOYEE", "VALID");
-    }
-
-    const gateAllows =
-      (input.eventType === "CHECK_IN" && (gate.type === "ENTRY" || gate.type === "BIDIRECTIONAL")) ||
-      (input.eventType === "CHECK_OUT" && (gate.type === "EXIT" || gate.type === "BIDIRECTIONAL"));
-    if (!gateAllows) {
-      return fail(emp.id, emp.fullName, "UNAUTHORIZED_GATE", "VALID");
-    }
-
-    const tx: AttendanceTransaction = {
-      id: nextTxId(),
-      employeeId: emp.id,
-      employeeName: emp.fullName,
-      ...base,
-      qrValidation: "VALID",
-      status: input.offline ? "PENDING" : "SUCCESS",
-      synced: !input.offline,
-    };
-    TRANSACTIONS.unshift(tx);
-    qr.lastUsedAt = tx.timestamp;
-    notifyDataChanged();
-    await new Promise((r) => setTimeout(r, 400));
-    return {
-      transaction: tx,
-      message:
-        tx.status === "PENDING"
-          ? "Access granted — transaction queued for synchronization (gate offline)"
-          : "Access granted — gate unlocked",
-    };
   },
 
   async listPendingSync(): Promise<AttendanceTransaction[]> {
@@ -201,11 +158,3 @@ export const attendanceService = {
     return delay(n, 500);
   },
 };
-
-function nextTxId(): string {
-  const max = TRANSACTIONS.reduce((m, t) => {
-    const n = Number(t.id.replace("TX-", ""));
-    return Number.isFinite(n) ? Math.max(m, n) : m;
-  }, 0);
-  return `TX-${String(max + 1).padStart(6, "0")}`;
-}

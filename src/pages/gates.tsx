@@ -147,7 +147,7 @@ export function GatesPage() {
       <PageHeader
         title="Gate Stations"
         description="Monitor physical access gates, turnstiles, and QR barcode scanner telemetry"
-        actions={<ScanSimulatorDialog />}
+        actions={<ScanSimulatorDialog gates={gates.data} />}
       />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

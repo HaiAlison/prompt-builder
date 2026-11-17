@@ -30,12 +30,15 @@ export interface Department {
   id: string;
   name: string;
   factoryId: string;
+  factoryName?: string;
+  factoryCode?: string;
 }
 
 export type EmploymentStatus = "ACTIVE" | "PROBATION" | "ON_LEAVE" | "SUSPENDED" | "TERMINATED";
 
 export interface Employee {
-  id: string; // e.g. TMC-BD-0001
+  id: string;
+  code: string;
   fullName: string;
   departmentId: string;
   departmentName: string;
@@ -82,16 +85,20 @@ export type QrValidation =
 export interface AttendanceTransaction {
   id: string; // e.g. TX-000001
   employeeId: string;
+  employeeCode?: string;
   employeeName: string;
-  factoryId: string;
+  factoryId?: string;
+  factoryName?: string;
+  factoryCode?: string;
   gateId: string;
+  gateCode?: string;
   gateName: string;
   eventType: EventType;
   timestamp: string; // ISO (UTC, rendered as Asia/Ho_Chi_Minh)
   qrValidation: QrValidation;
   status: TransactionStatus;
-  denialReason?: DenialReason;
-  errorMessage?: string;
+  denialReason?: DenialReason | string | null;
+  errorMessage?: string | null;
   /** False while the transaction waits for backend synchronization (offline gate). */
   synced: boolean;
 }

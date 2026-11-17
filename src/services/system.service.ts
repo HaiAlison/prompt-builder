@@ -3,6 +3,7 @@ import { MOCK_USERS, ROLES } from "@/mocks/users";
 import { DEFAULT_CONFIG, PAYROLL_EXPORTS } from "@/mocks/reports";
 import { notifyDataChanged } from "./bus";
 import { factoryService } from "./factory.service";
+import { departmentService } from "./department.service";
 
 function delay<T>(value: T, ms = 90): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
@@ -87,7 +88,7 @@ export const systemService = {
   },
 
   async listDepartments(): Promise<Department[]> {
-    return delay(DEPARTMENTS, 60);
+    return departmentService.list();
   },
 
   async createDepartment(input: Omit<Department, "id">): Promise<Department> {

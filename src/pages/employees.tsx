@@ -24,6 +24,9 @@ import { useAsync } from "@/hooks/use-async";
 import { downloadCsv } from "@/utils/csv";
 import { EMPLOYMENT_STATUS_LABEL } from "@/utils/format";
 import type { EmploymentStatus, FactoryFilter } from "@/types";
+import { useDepartment, useDepartmentOptions } from "@/hooks/use-department";
+import { useFactoryOptions } from "@/hooks/use-factory-options";
+import { useEmployee } from "@/hooks/use-employee";
 
 export function EmployeesPage() {
   const search = useSearch({ strict: false }) as { q?: string };
@@ -37,31 +40,10 @@ export function EmployeesPage() {
   const [detail, setDetail] = useState<EmployeeRow | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
-  const departments = useAsync(() => systemService.listDepartments(), [version]);
-  const employees = useAsync(
-    () =>
-      employeeService.list({
-        q,
-        factoryId: factory,
-        departmentId: department,
-        employmentStatus: status as EmploymentStatus | "ALL",
-      }),
-    [q, factory, department, status, version],
-  );
 
-  const depOptions = useMemo(
-    () => [
-      { value: "ALL", label: "All departments" },
-      ...(departments.data ?? [])
-        .filter((d) => factory === "ALL" || d.factoryId === factory)
-        .map((d) => ({
-          value: d.id,
-          label: `${d.name}${factory === "ALL" ? ` (${d.factoryId})` : ""}`,
-        })),
-    ],
-    [departments.data, factory],
-  );
-
+  const { options: departmentOptions, loading: departmentLoading } = useDepartmentOptions();
+  const { options: factoryOptions, loading: factoriesLoading } = useFactoryOptions();
+  const { employees, loading: employeeLoading, reload: employeeReload } = useEmployee();
   async function toggleActive(row: EmployeeRow) {
     const next: EmploymentStatus = row.employmentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
     await employeeService.setStatus(row.id, next);
@@ -69,11 +51,11 @@ export function EmployeesPage() {
   }
 
   function exportCsv() {
-    const rows = employees.data ?? [];
+    const rows = employees?.results ?? [];
     downloadCsv(
       `tmc-employees-${new Date().toISOString().slice(0, 10)}.csv`,
       [
-        "Employee ID",
+        "Employee Code",
         "Full Name",
         "Department",
         "Position",
@@ -84,7 +66,7 @@ export function EmployeesPage() {
         "QR Status",
       ],
       rows.map((r) => [
-        r.id,
+        r.code,
         r.fullName,
         r.departmentName,
         r.position,
@@ -100,10 +82,10 @@ export function EmployeesPage() {
 
   const columns: Column<EmployeeRow>[] = [
     {
-      key: "id",
-      header: "Employee ID",
-      render: (r) => <span className="font-mono text-xs">{r.id}</span>,
-      sort: (r) => r.id,
+      key: "code",
+      header: "Employee Code",
+      render: (r) => <span className="font-mono text-xs">{r.code}</span>,
+      sort: (r) => r.code,
     },
     {
       key: "name",
@@ -218,9 +200,9 @@ export function EmployeesPage() {
 
       <DataTable
         columns={columns}
-        rows={employees.data ?? []}
+        rows={employees?.results ?? []}
         rowKey={(r) => r.id}
-        loading={employees.loading}
+        loading={employeeLoading}
         pageSize={10}
         toolbar={
           <div className="flex flex-wrap items-end gap-3">
@@ -240,17 +222,14 @@ export function EmployeesPage() {
                 setFactory(v as FactoryFilter);
                 setDepartment("ALL");
               }}
-              options={[
-                { value: "ALL", label: "All factories" },
-                { value: "BD", label: "Binh Duong" },
-                { value: "LA", label: "Long An" },
-              ]}
+              options={factoryOptions}
             />
             <FilterSelect
               label="Department"
               value={department}
               onChange={setDepartment}
-              options={depOptions}
+              disabled={departmentLoading}
+              options={departmentOptions}
             />
             <FilterSelect
               label="Employment status"
@@ -274,7 +253,7 @@ export function EmployeesPage() {
         open={formOpen}
         onOpenChange={setFormOpen}
         editing={editing}
-        onSaved={() => employees.reload()}
+        onSaved={() => employeeReload()}
       />
       <EmployeeDetailDrawer employee={detail} open={detailOpen} onOpenChange={setDetailOpen} />
     </div>
