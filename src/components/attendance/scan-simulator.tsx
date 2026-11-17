@@ -37,12 +37,12 @@ import type { AttendanceTransaction, EventType, ScanResult } from "@/types";
  * service validates the QR exactly like the future backend will. Includes
  * one-click bad-scenario chips (expired/revoked/unknown/inactive employee).
  */
-export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }) {
+export function ScanSimulatorDialog({ children, defaultGateId }: { children?: React.ReactNode, defaultGateId?: string }) {
   const { network, version } = useAppState();
   const [open, setOpen] = useState(false);
   const [employeeQuery, setEmployeeQuery] = useState("");
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
-  const [gateId, setGateId] = useState<string>(GATES[0].id);
+  const [gateId, setGateId] = useState<string>(defaultGateId || "");
   const [eventType, setEventType] = useState<EventType>("CHECK_IN");
   const [payloadOverride, setPayloadOverride] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -239,11 +239,10 @@ export function ScanSimulatorDialog({ children }: { children?: React.ReactNode }
 
           {tx && (
             <div
-              className={`rounded-lg border p-3 ${
-                tx.status === "SUCCESS" || tx.status === "PENDING"
-                  ? "border-success/30 bg-success/5"
-                  : "border-destructive/30 bg-destructive/5"
-              }`}
+              className={`rounded-lg border p-3 ${tx.status === "SUCCESS" || tx.status === "PENDING"
+                ? "border-success/30 bg-success/5"
+                : "border-destructive/30 bg-destructive/5"
+                }`}
             >
               <p className="flex items-center gap-2 text-sm font-semibold">
                 {tx.status === "SUCCESS" || tx.status === "PENDING" ? (

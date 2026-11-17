@@ -18,7 +18,8 @@ import { ScanSimulatorDialog } from "@/components/attendance/scan-simulator";
 import { gateService } from "@/services/gate.service";
 import { useAppState } from "@/store/app-state";
 import { useAsync } from "@/hooks/use-async";
-import { formatDateTime } from "@/utils/format";
+import { useFactoryOptions } from "@/hooks/use-factory-options";
+import { dynamicDateFormat, formatDateTime } from "@/utils/format";
 import type { FactoryFilter, GateStation, GateStatus } from "@/types";
 
 export function GatesPage() {
@@ -26,6 +27,8 @@ export function GatesPage() {
   const [q, setQ] = useState("");
   const [factory, setFactory] = useState<FactoryFilter | "ALL">(globalFactory);
   const [status, setStatus] = useState<GateStatus | "ALL">("ALL");
+
+  const { options: factoryOptions, loading: factoriesLoading } = useFactoryOptions();
 
   const gates = useAsync(
     () => gateService.list({ q, factoryId: factory, status }),
@@ -43,23 +46,23 @@ export function GatesPage() {
 
   const columns: Column<GateStation>[] = [
     {
-      id: "id",
+      key: "id",
       header: "Gate ID",
-      cell: (g) => (
+      render: (g) => (
         <Link
           to="/gates/$gateId"
           params={{ gateId: g.id }}
           className="font-mono font-semibold text-primary hover:underline flex items-center gap-1.5"
         >
           <DoorOpen className="h-4 w-4" />
-          {g.id}
+          {g.code}
         </Link>
       ),
     },
     {
-      id: "name",
+      key: "name",
       header: "Name & Location",
-      cell: (g) => (
+      render: (g) => (
         <div>
           <div className="font-medium text-foreground">{g.name}</div>
           <div className="text-xs text-muted-foreground">{g.location}</div>
@@ -67,45 +70,45 @@ export function GatesPage() {
       ),
     },
     {
-      id: "factoryId",
+      key: "factoryId",
       header: "Factory",
-      cell: (g) => (
+      render: (g) => (
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {g.factoryId === "BD" ? "Bình Dương" : "Long An"}
         </span>
       ),
     },
     {
-      id: "type",
+      key: "type",
       header: "Type",
-      cell: (g) => (
+      render: (g) => (
         <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
           {g.type}
         </span>
       ),
     },
     {
-      id: "controllerStatus",
+      key: "controllerStatus",
       header: "Controller",
-      cell: (g) => <GateBadge status={g.controllerStatus} />,
+      render: (g) => <GateBadge status={g.status} />,
     },
     {
-      id: "scannerStatus",
+      key: "scannerStatus",
       header: "Scanner",
-      cell: (g) => <GateBadge status={g.scannerStatus} />,
+      render: (g) => <GateBadge status={g.scannerStatus} />,
     },
     {
-      id: "lastHeartbeat",
+      key: "lastHeartbeatAt",
       header: "Last Heartbeat",
-      cell: (g) => (
-        <span className="text-xs text-muted-foreground">{formatDateTime(g.lastHeartbeat)}</span>
+      render: (g) => (
+        <span className="text-xs text-muted-foreground">{dynamicDateFormat(g.lastHeartbeatAt, "HH:mm:ss DD/MM/YYYY")}</span>
       ),
     },
     {
-      id: "actions",
+      key: "actions",
       header: "",
       className: "w-12 text-right",
-      cell: (g) => (
+      render: (g) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -134,10 +137,10 @@ export function GatesPage() {
   ];
 
   const total = gates.data?.length ?? 0;
-  const onlineCount = gates.data?.filter((g) => g.controllerStatus === "ONLINE").length ?? 0;
-  const offlineCount = gates.data?.filter((g) => g.controllerStatus === "OFFLINE").length ?? 0;
+  const onlineCount = gates.data?.filter((g) => g.status === "ONLINE").length ?? 0;
+  const offlineCount = gates.data?.filter((g) => g.status === "OFFLINE").length ?? 0;
   const maintenanceCount =
-    gates.data?.filter((g) => g.controllerStatus === "MAINTENANCE").length ?? 0;
+    gates.data?.filter((g) => g.status === "MAINTENANCE").length ?? 0;
 
   return (
     <div className="flex flex-col gap-5">
@@ -177,11 +180,8 @@ export function GatesPage() {
           <FilterSelect
             value={factory}
             onChange={(v) => setFactory(v as FactoryFilter | "ALL")}
-            options={[
-              { value: "ALL", label: "All factories" },
-              { value: "BD", label: "Bình Dương (BD)" },
-              { value: "LA", label: "Long An (LA)" },
-            ]}
+            options={factoryOptions}
+            disabled={factoriesLoading}
           />
           <FilterSelect
             value={status}
@@ -198,7 +198,7 @@ export function GatesPage() {
 
       <DataTable
         columns={columns}
-        data={gates.data ?? []}
+        rows={gates.data ?? []}
         loading={gates.loading}
         rowKey={(g) => g.id}
         emptyMessage="No gate stations found matching the filter."

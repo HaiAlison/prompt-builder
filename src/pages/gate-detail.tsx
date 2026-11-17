@@ -29,7 +29,7 @@ export function GateDetailPage() {
   async function handleSetStatus(newStatus: GateStatus) {
     try {
       await gateService.setStatus(gateId, newStatus);
-      toast.success(`Gate ${gateId} status updated to ${newStatus}`);
+      toast.success(`Gate ${gate?.code} status updated to ${newStatus}`);
     } catch {
       toast.error("Failed to update status");
     }
@@ -68,19 +68,19 @@ export function GateDetailPage() {
       </div>
 
       <PageHeader
-        title={`${gate.name} (${gate.id})`}
+        title={`${gate.name} (${gate.code})`}
         description={`Location: ${gate.location} · Factory: ${gate.factoryId === "BD" ? "Bình Dương" : "Long An"}`}
         actions={
           <div className="flex items-center gap-2">
             <Button
-              variant={gate.controllerStatus === "ONLINE" ? "outline" : "default"}
+              variant={gate.status === "ONLINE" ? "outline" : "default"}
               size="sm"
               onClick={() =>
-                handleSetStatus(gate.controllerStatus === "ONLINE" ? "OFFLINE" : "ONLINE")
+                handleSetStatus(gate.status === "ONLINE" ? "OFFLINE" : "ONLINE")
               }
             >
               <Power className="mr-1.5 h-4 w-4" />
-              {gate.controllerStatus === "ONLINE" ? "Take Offline" : "Turn Online"}
+              {gate.status === "ONLINE" ? "Take Offline" : "Turn Online"}
             </Button>
             <ScanSimulatorDialog defaultGateId={gate.id} />
           </div>
@@ -102,7 +102,7 @@ export function GateDetailPage() {
           <CardHeader className="pb-2">
             <CardDescription>Controller Status</CardDescription>
             <div className="pt-1">
-              <GateBadge status={gate.controllerStatus} />
+              <GateBadge status={gate.status} />
             </div>
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground">

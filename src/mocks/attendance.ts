@@ -48,36 +48,61 @@ function planDay(rng: Rng, dayKey: string, isToday: boolean): PlannedDay | null 
 }
 
 function generateTransactions(): AttendanceTransaction[] {
-  const rng = mulberry32(424242);
-  const out: AttendanceTransaction[] = [];
-  const days = dateKeys();
-  const gatesByFactory: Record<string, { entry: typeof GATES; exit: typeof GATES }> = {
-    BD: { entry: [], exit: [] },
-    LA: { entry: [], exit: [] },
-  };
-  for (const g of GATES) {
-    if (g.type === "EXIT") gatesByFactory[g.factoryId].exit.push(g);
-    else gatesByFactory[g.factoryId].entry.push(g);
-  }
-  let seq = 0;
-  const nextId = () => `TX-${String(++seq).padStart(6, "0")}`;
+  {
+    const rng = mulberry32(424242);
+    const out: AttendanceTransaction[] = [];
+    const days = dateKeys();
+    const gatesByFactory: Record<string, { entry: typeof GATES; exit: typeof GATES }> = {
+      BD: { entry: [], exit: [] },
+      LA: { entry: [], exit: [] },
+    };
+    for (const g of GATES) {
+      if (g.type === "EXIT") gatesByFactory[g.factoryId].exit.push(g);
+      else gatesByFactory[g.factoryId].entry.push(g);
+    }
+    let seq = 0;
+    const nextId = () => `TX-${String(++seq).padStart(6, "0")}`;
 
-  for (const emp of EMPLOYEES) {
-    const eligible = emp.employmentStatus === "ACTIVE" || emp.employmentStatus === "PROBATION";
-    if (!eligible) continue;
-    for (const dayKey of days) {
-      const leave = seededLeave(emp.id, dayKey);
-      const empRng = seededRngFor(emp.id + dayKey + "att");
-      if (leave) continue;
-      const isToday = dayKey === days[days.length - 1];
-      const plan = planDay(empRng, dayKey, isToday);
-      if (!plan) continue;
-      const dateParts = dayKey.split("-").map(Number);
-      if (plan.checkIn) {
-        const gate = pick(empRng, gatesByFactory[emp.factoryId].entry);
-        const denied = chance(empRng, 0.008);
-        if (denied) {
-          const reason = pickDenial(empRng);
+    for (const emp of EMPLOYEES) {
+      const eligible = emp.employmentStatus === "ACTIVE" || emp.employmentStatus === "PROBATION";
+      if (!eligible) continue;
+      for (const dayKey of days) {
+        const leave = seededLeave(emp.id, dayKey);
+        const empRng = seededRngFor(emp.id + dayKey + "att");
+        if (leave) continue;
+        const isToday = dayKey === days[days.length - 1];
+        const plan = planDay(empRng, dayKey, isToday);
+        if (!plan) continue;
+        const dateParts = dayKey.split("-").map(Number);
+        if (plan.checkIn) {
+          const gate = pick(empRng, gatesByFactory[emp.factoryId].entry);
+          const denied = chance(empRng, 0.008);
+          if (denied) {
+            const reason = pickDenial(empRng);
+            out.push({
+              id: nextId(),
+              employeeId: emp.id,
+              employeeName: emp.fullName,
+              factoryId: emp.factoryId,
+              gateId: gate.id,
+              gateName: gate.name,
+              eventType: "CHECK_IN",
+              timestamp: utcAsLocal(
+                dateParts[0],
+                dateParts[1],
+                dateParts[2],
+                Math.floor(randInt(empRng, 6 * 60 + 45, 8 * 60 + 15) / 60),
+                0,
+              ),
+              qrValidation: validationFor(reason),
+              status: "DENIED",
+              denialReason: reason,
+              errorMessage: denialMessage(reason),
+              synced: true,
+            });
+            continue;
+          }
+          const [h, m] = plan.checkIn.split(":").map(Number);
           out.push({
             id: nextId(),
             employeeId: emp.id,
@@ -86,120 +111,97 @@ function generateTransactions(): AttendanceTransaction[] {
             gateId: gate.id,
             gateName: gate.name,
             eventType: "CHECK_IN",
-            timestamp: utcAsLocal(
-              dateParts[0],
-              dateParts[1],
-              dateParts[2],
-              Math.floor(randInt(empRng, 6 * 60 + 45, 8 * 60 + 15) / 60),
-              0,
-            ),
-            qrValidation: validationFor(reason),
-            status: "DENIED",
-            denialReason: reason,
-            errorMessage: denialMessage(reason),
+            timestamp: utcAsLocal(dateParts[0], dateParts[1], dateParts[2], h, m),
+            qrValidation: "VALID",
+            status: "SUCCESS",
             synced: true,
           });
-          continue;
         }
-        const [h, m] = plan.checkIn.split(":").map(Number);
-        out.push({
-          id: nextId(),
-          employeeId: emp.id,
-          employeeName: emp.fullName,
-          factoryId: emp.factoryId,
-          gateId: gate.id,
-          gateName: gate.name,
-          eventType: "CHECK_IN",
-          timestamp: utcAsLocal(dateParts[0], dateParts[1], dateParts[2], h, m),
-          qrValidation: "VALID",
-          status: "SUCCESS",
-          synced: true,
-        });
-      }
-      if (plan.checkOut) {
-        const gate = pick(empRng, gatesByFactory[emp.factoryId].exit);
-        const [h, m] = plan.checkOut.split(":").map(Number);
-        out.push({
-          id: nextId(),
-          employeeId: emp.id,
-          employeeName: emp.fullName,
-          factoryId: emp.factoryId,
-          gateId: gate.id,
-          gateName: gate.name,
-          eventType: "CHECK_OUT",
-          timestamp: utcAsLocal(dateParts[0], dateParts[1], dateParts[2], h, m),
-          qrValidation: "VALID",
-          status: "SUCCESS",
-          synced: true,
-        });
+        if (plan.checkOut) {
+          const gate = pick(empRng, gatesByFactory[emp.factoryId].exit);
+          const [h, m] = plan.checkOut.split(":").map(Number);
+          out.push({
+            id: nextId(),
+            employeeId: emp.id,
+            employeeName: emp.fullName,
+            factoryId: emp.factoryId,
+            gateId: gate.id,
+            gateName: gate.name,
+            eventType: "CHECK_OUT",
+            timestamp: utcAsLocal(dateParts[0], dateParts[1], dateParts[2], h, m),
+            qrValidation: "VALID",
+            status: "SUCCESS",
+            synced: true,
+          });
+        }
       }
     }
-  }
 
-  // Inject unknown-QR denials (no employee behind the card).
-  for (let i = 0; i < 18; i++) {
-    const dayKey = pick(rng, days);
-    const d = dayKey.split("-").map(Number);
-    const gate = pick(
-      rng,
-      GATES.filter((g) => g.controllerStatus === "ONLINE"),
-    );
-    out.push({
-      id: nextId(),
-      employeeId: "—",
-      employeeName: "Unknown QR card",
-      factoryId: gate.factoryId,
-      gateId: gate.id,
-      gateName: gate.name,
-      eventType: pick(rng, ["CHECK_IN", "CHECK_OUT"] as const),
-      timestamp: utcAsLocal(d[0], d[1], d[2], randInt(rng, 6, 17), randInt(rng, 0, 59)),
-      qrValidation: "UNKNOWN",
-      status: "DENIED",
-      denialReason: "UNKNOWN_QR",
-      errorMessage: "QR payload not recognized by the validation service",
-      synced: true,
-    });
-  }
-
-  // Inject a handful of failed transactions on the offline/under-maintenance gates.
-  for (let i = 0; i < 8; i++) {
-    const dayKey = pick(rng, days);
-    const d = dayKey.split("-").map(Number);
-    const gate = pick(
-      rng,
-      GATES.filter((g) => g.controllerStatus !== "ONLINE"),
-    );
-    out.push({
-      id: nextId(),
-      employeeId: "—",
-      employeeName: "—",
-      factoryId: gate.factoryId,
-      gateId: gate.id,
-      gateName: gate.name,
-      eventType: pick(rng, ["CHECK_IN", "CHECK_OUT"] as const),
-      timestamp: utcAsLocal(d[0], d[1], d[2], randInt(rng, 6, 17), randInt(rng, 0, 59)),
-      qrValidation: "NOT_VALIDATED",
-      status: "FAILED",
-      errorMessage: "Gate controller unreachable — transaction not processed",
-      synced: false,
-    });
-  }
-
-  out.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-
-  // Simulate offline queue: the newest successful transactions from today are
-  // waiting for synchronization.
-  const todayKey = days[days.length - 1];
-  let marked = 0;
-  for (const tx of out) {
-    if (marked >= 14) break;
-    if (tx.timestamp.slice(0, 10) === todayKey && tx.status === "SUCCESS") {
-      tx.status = "PENDING";
-      tx.synced = false;
-      marked++;
+    // Inject unknown-QR denials (no employee behind the card).
+    for (let i = 0; i < 18; i++) {
+      const dayKey = pick(rng, days);
+      const d = dayKey.split("-").map(Number);
+      const gate = pick(
+        rng,
+        GATES.filter((g) => g.controllerStatus === "ONLINE"),
+      );
+      out.push({
+        id: nextId(),
+        employeeId: "—",
+        employeeName: "Unknown QR card",
+        factoryId: gate.factoryId,
+        gateId: gate.id,
+        gateName: gate.name,
+        eventType: pick(rng, ["CHECK_IN", "CHECK_OUT"] as const),
+        timestamp: utcAsLocal(d[0], d[1], d[2], randInt(rng, 6, 17), randInt(rng, 0, 59)),
+        qrValidation: "UNKNOWN",
+        status: "DENIED",
+        denialReason: "UNKNOWN_QR",
+        errorMessage: "QR payload not recognized by the validation service",
+        synced: true,
+      });
     }
+
+    // Inject a handful of failed transactions on the offline/under-maintenance gates.
+    for (let i = 0; i < 8; i++) {
+      const dayKey = pick(rng, days);
+      const d = dayKey.split("-").map(Number);
+      const gate = pick(
+        rng,
+        GATES.filter((g) => g.controllerStatus !== "ONLINE"),
+      );
+      out.push({
+        id: nextId(),
+        employeeId: "—",
+        employeeName: "—",
+        factoryId: gate.factoryId,
+        gateId: gate.id,
+        gateName: gate.name,
+        eventType: pick(rng, ["CHECK_IN", "CHECK_OUT"] as const),
+        timestamp: utcAsLocal(d[0], d[1], d[2], randInt(rng, 6, 17), randInt(rng, 0, 59)),
+        qrValidation: "NOT_VALIDATED",
+        status: "FAILED",
+        errorMessage: "Gate controller unreachable — transaction not processed",
+        synced: false,
+      });
+    }
+
+    out.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+
+    // Simulate offline queue: the newest successful transactions from today are
+    // waiting for synchronization.
+    const todayKey = days[days.length - 1];
+    let marked = 0;
+    for (const tx of out) {
+      if (marked >= 14) break;
+      if (tx.timestamp.slice(0, 10) === todayKey && tx.status === "SUCCESS") {
+        tx.status = "PENDING";
+        tx.synced = false;
+        marked++;
+      }
+    }
+    return out;
   }
-  return out;
 }
 
 function seededLeave(employeeId: string, dayKey: string): boolean {

@@ -14,18 +14,30 @@ export interface FilterOption {
 }
 
 interface FilterSelectProps {
-  label: string;
+  label?: string;
   value: string;
   onChange: (value: string) => void;
   options: FilterOption[];
   className?: string;
+  disabled?: boolean;
 }
 
-export function FilterSelect({ label, value, onChange, options, className }: FilterSelectProps) {
+export function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+  className,
+  disabled,
+}: FilterSelectProps) {
   return (
     <div className={className}>
       <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">{label}</Label>
-      <Select value={value} onValueChange={onChange}>
+      <Select
+        value={value}
+        onValueChange={onChange}
+        {...(disabled !== undefined ? { disabled } : {})}
+      >
         <SelectTrigger className="h-9 w-full min-w-[140px] bg-card">
           <SelectValue />
         </SelectTrigger>

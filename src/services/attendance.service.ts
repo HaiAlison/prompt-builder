@@ -15,6 +15,7 @@ import { EMPLOYEE_BY_ID, EMPLOYEES } from "@/mocks/data";
 import { notifyDataChanged } from "./bus";
 import { buildDailySummaries } from "./summary";
 import { dateKey, todayKey } from "@/utils/format";
+import api from "./api";
 
 function delay<T>(value: T, ms = 90): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
@@ -44,26 +45,8 @@ function validationFor(reason: DenialReason): QrValidation {
 export const attendanceService = {
   async listTransactions(params: TransactionParams = {}): Promise<AttendanceTransaction[]> {
     const q = params.q?.trim().toLowerCase();
-    let rows = TRANSACTIONS;
-    if (params.factoryId && params.factoryId !== "ALL") rows = rows.filter((t) => t.factoryId === params.factoryId);
-    if (params.gateId && params.gateId !== "ALL") rows = rows.filter((t) => t.gateId === params.gateId);
-    if (params.eventType && params.eventType !== "ALL") rows = rows.filter((t) => t.eventType === params.eventType);
-    if (params.status && params.status !== "ALL") rows = rows.filter((t) => t.status === params.status);
-    if (params.from) rows = rows.filter((t) => dateKey(t.timestamp) >= params.from!);
-    if (params.to) rows = rows.filter((t) => dateKey(t.timestamp) <= params.to!);
-    if (params.departmentId && params.departmentId !== "ALL") {
-      rows = rows.filter((t) => EMPLOYEE_BY_ID.get(t.employeeId)?.departmentId === params.departmentId);
-    }
-    if (q) {
-      rows = rows.filter(
-        (t) =>
-          t.employeeId.toLowerCase().includes(q) ||
-          t.employeeName.toLowerCase().includes(q) ||
-          t.id.toLowerCase().includes(q) ||
-          t.gateName.toLowerCase().includes(q),
-      );
-    }
-    return delay(rows.slice(0, 4000));
+    let results = await api.get<AttendanceTransaction[]>('/attendance/transactions', { params });
+    return delay(results.data.slice(0, 4000));
   },
 
   async getTransaction(id: string): Promise<AttendanceTransaction | undefined> {
@@ -82,83 +65,9 @@ export const attendanceService = {
     return delay(rows);
   },
 
-  async getDashboard(factoryFilter: FactoryFilter = "ALL"): Promise<DashboardData> {
-    const today = todayKey();
-    const eligible = EMPLOYEES.filter(
-      (e) => (e.employmentStatus === "ACTIVE" || e.employmentStatus === "PROBATION") &&
-        (factoryFilter === "ALL" || e.factoryId === factoryFilter),
-    );
-    const onLeave = EMPLOYEES.filter(
-      (e) => e.employmentStatus === "ON_LEAVE" && (factoryFilter === "ALL" || e.factoryId === factoryFilter),
-    ).length;
-
-    const todayTx = TRANSACTIONS.filter((t) => dateKey(t.timestamp) === today);
-    const scoped = factoryFilter === "ALL" ? todayTx : todayTx.filter((t) => t.factoryId === factoryFilter);
-
-    const checkInTxs = scoped.filter((t) => t.eventType === "CHECK_IN" && (t.status === "SUCCESS" || t.status === "PENDING"));
-    const presentSet = new Set(checkInTxs.map((t) => t.employeeId));
-    const lateSet = new Set(
-      checkInTxs.filter((t) => Number(t.timestamp.slice(11, 13)) * 60 + Number(t.timestamp.slice(14, 16)) > 7 * 60 + 45).map((t) => t.employeeId),
-    );
-
-    const trend: DashboardData["trend"] = [];
-    const now = nowSim();
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 86_400_000).toISOString().slice(0, 10);
-      const dayTx = TRANSACTIONS.filter((t) => dateKey(t.timestamp) === d && (factoryFilter === "ALL" || t.factoryId === factoryFilter));
-      trend.push({
-        date: d,
-        checkIns: dayTx.filter((t) => t.eventType === "CHECK_IN" && (t.status === "SUCCESS" || t.status === "PENDING")).length,
-        checkOuts: dayTx.filter((t) => t.eventType === "CHECK_OUT" && (t.status === "SUCCESS" || t.status === "PENDING")).length,
-      });
-    }
-
-    const factoryComparison: DashboardData["factoryComparison"] = (["BD", "LA"] as const).map((fid) => {
-      const fTx = todayTx.filter((t) => t.factoryId === fid);
-      const fEligible = EMPLOYEES.filter(
-        (e) => e.factoryId === fid && (e.employmentStatus === "ACTIVE" || e.employmentStatus === "PROBATION"),
-      ).length;
-      const fPresent = new Set(
-        fTx.filter((t) => t.eventType === "CHECK_IN" && (t.status === "SUCCESS" || t.status === "PENDING")).map((t) => t.employeeId),
-      ).size;
-      return {
-        factoryId: fid,
-        factoryName: fid === "BD" ? "Binh Duong" : "Long An",
-        attendanceRate: fEligible ? Math.round((fPresent / fEligible) * 1000) / 10 : 0,
-        checkIns: fPresent,
-        denied: fTx.filter((t) => t.status === "DENIED").length,
-      };
-    });
-
-    const presentToday = presentSet.size;
-    const kpis = {
-      totalEmployees: eligible.length,
-      presentToday,
-      absentToday: Math.max(0, eligible.length - presentToday - onLeave),
-      insideNow: [...presentSet].filter((id) => {
-        const empToday = scoped.filter((t) => t.employeeId === id);
-        const hasOut = empToday.some((t) => t.eventType === "CHECK_OUT" && (t.status === "SUCCESS" || t.status === "PENDING"));
-        return !hasOut;
-      }).length,
-      checkInsToday: checkInTxs.length,
-      checkOutsToday: scoped.filter((t) => t.eventType === "CHECK_OUT" && (t.status === "SUCCESS" || t.status === "PENDING")).length,
-      deniedToday: scoped.filter((t) => t.status === "DENIED").length,
-    };
-
-    const distribution = [
-      { name: "Present", value: Math.max(0, presentToday - lateSet.size), status: "PRESENT" as const },
-      { name: "Late", value: lateSet.size, status: "LATE" as const },
-      { name: "Absent", value: Math.max(0, eligible.length - presentToday - onLeave), status: "ABSENT" as const },
-      { name: "On Leave", value: onLeave, status: "ON_LEAVE" as const },
-    ];
-
-    return delay({
-      kpis,
-      trend,
-      distribution,
-      recentEvents: scoped.slice(0, 8),
-      factoryComparison,
-    }, 140);
+  async getDashboard(factoryId: FactoryFilter = "ALL"): Promise<DashboardData> {
+    const data = await api.get<DashboardData>(`/attendance/dashboard?factoryId=${factoryId}`);
+    return delay(data, 140);
   },
 
   /**
