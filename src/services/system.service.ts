@@ -2,6 +2,7 @@ import type { Department, Factory, Role, SystemConfig, SystemUser } from "@/type
 import { MOCK_USERS, ROLES } from "@/mocks/users";
 import { DEFAULT_CONFIG, PAYROLL_EXPORTS } from "@/mocks/reports";
 import { notifyDataChanged } from "./bus";
+import { factoryService } from "./factory.service";
 
 function delay<T>(value: T, ms = 90): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
@@ -73,7 +74,7 @@ export const systemService = {
   },
 
   async listFactories(): Promise<Factory[]> {
-    return delay(FACTORIES, 60);
+    return factoryService.list();
   },
 
   async updateFactory(id: string, patch: Partial<Factory>): Promise<Factory | undefined> {

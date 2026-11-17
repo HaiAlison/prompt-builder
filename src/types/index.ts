@@ -1,11 +1,27 @@
 // Domain types for the TMC Attendance & Access Control System (frontend only).
 // These mirror the future NestJS API contracts so services can be swapped later.
 
-export type FactoryId = "BD" | "LA";
+export interface IApiResponse<T> {
+  statusCode: number;
+  data: T;
+  duration: number | string;
+  message?: string;
+}
+
+export interface IPaginatedResponse<T> {
+  otherParams?: any;
+  results: T[];
+  offset: number;
+  limit: number;
+  totalItems: number;
+  totalPages: number;
+}
+
 
 export interface Factory {
-  id: FactoryId;
+  id: string;
   name: string;
+  code?: string;
   address: string;
   status: "ACTIVE" | "INACTIVE";
 }
@@ -13,7 +29,7 @@ export interface Factory {
 export interface Department {
   id: string;
   name: string;
-  factoryId: FactoryId;
+  factoryId: string;
 }
 
 export type EmploymentStatus = "ACTIVE" | "PROBATION" | "ON_LEAVE" | "SUSPENDED" | "TERMINATED";
@@ -24,7 +40,7 @@ export interface Employee {
   departmentId: string;
   departmentName: string;
   position: string;
-  factoryId: FactoryId;
+  factoryId: string;
   email: string;
   phone: string;
   employmentStatus: EmploymentStatus;
@@ -39,7 +55,7 @@ export interface QrCode {
   id: string; // e.g. QR-A1B2C3
   employeeId: string;
   employeeName: string;
-  factoryId: FactoryId;
+  factoryId: string;
   status: QrStatus;
   createdAt: string;
   expiresAt: string;
@@ -67,7 +83,7 @@ export interface AttendanceTransaction {
   id: string; // e.g. TX-000001
   employeeId: string;
   employeeName: string;
-  factoryId: FactoryId;
+  factoryId: string;
   gateId: string;
   gateName: string;
   eventType: EventType;
@@ -85,7 +101,7 @@ export type AttendanceStatus = "PRESENT" | "LATE" | "ABSENT" | "ON_LEAVE" | "INC
 export interface DailySummary {
   employeeId: string;
   employeeName: string;
-  factoryId: FactoryId;
+  factoryId: string;
   departmentName: string;
   date: string; // YYYY-MM-DD
   firstCheckIn: string | null;
@@ -100,12 +116,15 @@ export type GateStatus = "ONLINE" | "OFFLINE" | "MAINTENANCE";
 
 export interface GateStation {
   id: string; // e.g. GATE-BD-01
+  code: string;
   name: string;
-  factoryId: FactoryId;
+  factoryId: string;
   location: string;
   type: GateType;
+  status: GateStatus;
   controllerStatus: GateStatus;
   scannerStatus: GateStatus;
+  lastHeartbeatAt: string;
   lastHeartbeat: string;
 }
 
@@ -118,7 +137,7 @@ export interface MonthlyAttendanceRow {
   employeeId: string;
   employeeName: string;
   departmentName: string;
-  factoryId: FactoryId;
+  factoryId: string;
   workingDays: number;
   presentDays: number;
   absentDays: number;
@@ -127,7 +146,7 @@ export interface MonthlyAttendanceRow {
 }
 
 export interface FactoryReportRow {
-  factoryId: FactoryId;
+  factoryId: string;
   factoryName: string;
   employees: number;
   avgAttendanceRate: number;
@@ -141,7 +160,7 @@ export interface FactoryReportRow {
 export interface AccessControlReportRow {
   gateId: string;
   gateName: string;
-  factoryId: FactoryId;
+  factoryId: string;
   totalTransactions: number;
   successful: number;
   denied: number;
@@ -217,7 +236,7 @@ export interface SystemUser {
   role: RoleName;
   status: "ACTIVE" | "INACTIVE";
   lastLogin: string | null;
-  linkedEmployeeId?: string;
+  linkedEmployeeId: string | null;
 }
 
 export interface NotificationItem {
@@ -258,7 +277,7 @@ export interface DashboardData {
   distribution: { name: string; value: number; status: AttendanceStatus }[];
   recentEvents: AttendanceTransaction[];
   factoryComparison: {
-    factoryId: FactoryId;
+    factoryId: string;
     factoryName: string;
     attendanceRate: number;
     checkIns: number;
@@ -278,4 +297,4 @@ export interface ScanResult {
   message: string;
 }
 
-export type FactoryFilter = FactoryId | "ALL";
+export type FactoryFilter = string | "ALL";

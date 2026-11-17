@@ -30,6 +30,7 @@ import {
   formatDuration,
   formatTime,
   formatNumber,
+  dynamicDateFormat,
 } from "@/utils/format";
 import type { AttendanceTransaction, DailySummary, EventType, TransactionStatus } from "@/types";
 
@@ -58,8 +59,8 @@ export function AttendancePage() {
         gateId,
         eventType: eventType as EventType | "ALL",
         status: status as TransactionStatus | "ALL",
-        from: from || undefined,
-        to: to || undefined,
+        from: from,
+        to: to,
       }),
     [q, factory, department, gateId, eventType, status, from, to, version],
   );
@@ -316,7 +317,7 @@ export function AttendancePage() {
                   <Input
                     type="date"
                     value={from}
-                    onChange={(e) => setFrom(e.target.value)}
+                    onChange={(e) => setFrom(dynamicDateFormat(e.target.value, 'YYYY-MM-DD'))}
                     className="h-9 w-36"
                   />
                 </div>
@@ -325,7 +326,7 @@ export function AttendancePage() {
                   <Input
                     type="date"
                     value={to}
-                    onChange={(e) => setTo(e.target.value)}
+                    onChange={(e) => setTo(dynamicDateFormat(e.target.value, 'YYYY-MM-DD'))}
                     className="h-9 w-36"
                   />
                 </div>

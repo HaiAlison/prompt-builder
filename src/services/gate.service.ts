@@ -4,11 +4,13 @@ import type {
   GateStation,
   GateStatus,
   GateType,
+  IPaginatedResponse,
 } from "@/types";
 import { GATES, GATE_BY_ID } from "@/mocks/gates";
 import { TRANSACTIONS } from "@/mocks/attendance";
 import { notifyDataChanged } from "./bus";
 import { dateKey } from "@/utils/format";
+import api from "./api";
 
 function delay<T>(value: T, ms = 90): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), ms));
@@ -31,27 +33,13 @@ export interface GateDetail {
 export const gateService = {
   async list(params: GateListParams = {}): Promise<GateStation[]> {
     const q = params.q?.trim().toLowerCase();
-    let rows = GATES;
-    if (params.factoryId && params.factoryId !== "ALL")
-      rows = rows.filter((g) => g.factoryId === params.factoryId);
-    if (params.status && params.status !== "ALL") {
-      rows = rows.filter(
-        (g) => g.controllerStatus === params.status || g.scannerStatus === params.status,
-      );
-    }
-    if (q)
-      rows = rows.filter(
-        (g) =>
-          g.id.toLowerCase().includes(q) ||
-          g.name.toLowerCase().includes(q) ||
-          g.location.toLowerCase().includes(q),
-      );
-    return delay(rows);
+    const rows = await api.get<IPaginatedResponse<GateStation>>('/gates', { params });
+    return delay(rows.results)
   },
 
   async getById(id: string): Promise<GateDetail | undefined> {
-    const gate = GATE_BY_ID.get(id);
-    if (!gate) return undefined;
+    const rows = await api.get<GateDetail>(`/gates/${id}`);
+    if (!rows) return undefined;
     const events = TRANSACTIONS.filter((t) => t.gateId === id).slice(0, 20);
     const dailyStats: GateDetail["dailyStats"] = [];
     const now = new Date();
@@ -66,10 +54,10 @@ export const gateService = {
     }
     return delay(
       {
-        gate,
+        gate: rows.gate,
         recentEvents: events,
         dailyStats,
-        onlineScanners: GATES.filter((g) => g.controllerStatus === "ONLINE").length,
+        onlineScanners: GATES.filter((g) => g.status === "ONLINE").length,
         totalScanners: GATES.length,
       },
       110,
@@ -81,7 +69,7 @@ export const gateService = {
     const gate: GateStation = {
       ...input,
       id: `GATE-${input.factoryId}-${String(seq).padStart(2, "0")}`,
-      lastHeartbeat: new Date().toISOString(),
+      lastHeartbeatAt: new Date().toISOString(),
     };
     GATES.push(gate);
     notifyDataChanged();
@@ -98,6 +86,6 @@ export const gateService = {
   },
 
   async setStatus(id: string, status: GateStatus): Promise<GateStation | undefined> {
-    return this.update(id, { controllerStatus: status, scannerStatus: status });
+    return this.update(id, { status: status, scannerStatus: status });
   },
 };
