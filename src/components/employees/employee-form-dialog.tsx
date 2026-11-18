@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AlertCircle } from "lucide-react";
 import { useAsync } from "@/hooks/use-async";
 
 import {
@@ -23,7 +24,7 @@ import {
 import { employeeService } from "@/services/employee.service";
 import { systemService } from "@/services/system.service";
 import { useAppState } from "@/store/app-state";
-import type { Employee, EmploymentStatus, FactoryId } from "@/types";
+import type { Employee, EmployeePayload, EmploymentStatus } from "@/types";
 
 interface Props {
   open: boolean;
@@ -32,12 +33,11 @@ interface Props {
   onSaved: () => void;
 }
 
-const EMPTY: Omit<Employee, "id"> = {
+const EMPTY: EmployeePayload = {
   fullName: "",
   departmentId: "",
-  departmentName: "",
   position: "",
-  factoryId: "BD",
+  factoryId: "",
   email: "",
   phone: "",
   employmentStatus: "PROBATION",
@@ -47,31 +47,40 @@ const EMPTY: Omit<Employee, "id"> = {
 };
 
 export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Props) {
-  const { version } = useAppState();
-  const [form, setForm] = useState<Omit<Employee, "id">>(EMPTY);
+  const { factoryFilter: globalFactory, version } = useAppState();
+  const [form, setForm] = useState<EmployeePayload>(EMPTY);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const departments = useAsync(() => systemService.listDepartments(), [version]);
+  const factories = useAsync(() => systemService.listFactories(), [version]);
 
   useEffect(() => {
     if (open) {
       setErrors({});
-      setForm(editing ? { ...editing } : EMPTY);
+      setServerError(null);
+      if (editing) {
+        const { id, code, departmentName, ...payload } = editing;
+        setForm(payload);
+      } else {
+        setForm(EMPTY);
+      }
     }
   }, [open, editing]);
 
   function set<K extends keyof Omit<Employee, "id">>(key: K, value: Omit<Employee, "id">[K]) {
+    setServerError(null);
     setForm((f) => ({ ...f, [key]: value }));
   }
 
   function validate(): boolean {
     const e: Record<string, string> = {};
-    if (!form.fullName.trim()) e.fullName = "Full name is required";
-    if (!form.departmentId) e.departmentId = "Department is required";
-    if (!form.position.trim()) e.position = "Position is required";
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = "Valid email is required";
-    if (!/^[+\d][\d\s-]{7,}$/.test(form.phone)) e.phone = "Valid phone number is required";
-    if (!form.hireDate) e.hireDate = "Hire date is required";
+    if (!form.fullName?.trim()) e['fullName'] = "Full name is required";
+    if (!form.departmentId) e['departmentId'] = "Department is required";
+    if (!form.position?.trim()) e['position'] = "Position is required";
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email || '')) e['email'] = "Valid email is required";
+    if (!/^[+\d][\d\s-]{7,}$/.test(form.phone || '')) e['phone'] = "Valid phone number is required";
+    if (!form.hireDate) e['hireDate'] = "Hire date is required";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -79,25 +88,45 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
   async function save() {
     if (!validate()) return;
     setBusy(true);
+    setServerError(null);
     try {
-      const dep = (departments.data ?? []).find((d) => d.id === form.departmentId);
-      const payload = { ...form, departmentName: dep?.name ?? form.departmentName };
       if (editing) {
-        await employeeService.update(editing.id, payload);
+        const dirtyFields = Object.keys(form).reduce<Partial<EmployeePayload>>((acc, key) => {
+          const k = key as keyof EmployeePayload;
+          if (form[k] !== editing[k]) {
+            acc[k] = form[k];
+          }
+          return acc;
+        }, {});
+
+        if (Object.keys(dirtyFields).length === 0) {
+          onOpenChange(false);
+          return;
+        }
+
+        await employeeService.update(editing.id, dirtyFields);
         toast.success(`Employee ${editing.id} updated`);
       } else {
-        const created = await employeeService.create(payload);
+        const created = await employeeService.create(form);
         toast.success(`Employee ${created.id} created`);
       }
       onOpenChange(false);
       onSaved();
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to save employee";
+      setServerError(message);
+      toast.error(message);
     } finally {
       setBusy(false);
     }
   }
 
   const factoryDeps = (departments.data ?? []).filter((d) => d.factoryId === form.factoryId);
-
+  console.log('deps: ', factoryDeps);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
@@ -109,8 +138,15 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
               : "New employees receive an employee ID automatically."}
           </DialogDescription>
         </DialogHeader>
+
+        {serverError && (
+          <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span>{serverError}</span>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Full name" error={errors.fullName} className="col-span-2">
+          <Field label="Full name" error={errors['fullName'] || ''} className="col-span-2">
             <Input
               value={form.fullName}
               onChange={(e) => set("fullName", e.target.value)}
@@ -119,9 +155,9 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
           </Field>
           <Field label="Factory">
             <Select
-              value={form.factoryId}
+              value={form.factoryId || ''}
               onValueChange={(v) => {
-                set("factoryId", v as FactoryId);
+                set("factoryId", v);
                 set("departmentId", "");
               }}
               disabled={!!editing}
@@ -130,13 +166,16 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="BD">Binh Duong</SelectItem>
-                <SelectItem value="LA">Long An</SelectItem>
+                {factories.data?.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Department" error={errors.departmentId}>
-            <Select value={form.departmentId} onValueChange={(v) => set("departmentId", v)}>
+          <Field label="Department" error={errors['departmentId'] || ''}>
+            <Select value={form.departmentId || ''} onValueChange={(v) => set("departmentId", v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
@@ -149,7 +188,7 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Position" error={errors.position}>
+          <Field label="Position" error={errors['position'] || ''}>
             <Input
               value={form.position}
               onChange={(e) => set("position", e.target.value)}
@@ -158,7 +197,7 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
           </Field>
           <Field label="Employment status">
             <Select
-              value={form.employmentStatus}
+              value={form.employmentStatus || ''}
               onValueChange={(v) => set("employmentStatus", v as EmploymentStatus)}
             >
               <SelectTrigger>
@@ -175,7 +214,7 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Email" error={errors.email}>
+          <Field label="Email" error={errors['email'] || ''}>
             <Input
               type="email"
               value={form.email}
@@ -183,14 +222,14 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
               placeholder="name@tmc.com.vn"
             />
           </Field>
-          <Field label="Phone" error={errors.phone}>
+          <Field label="Phone" error={errors['phone'] || ''}>
             <Input
               value={form.phone}
               onChange={(e) => set("phone", e.target.value)}
               placeholder="+84 90 123 4567"
             />
           </Field>
-          <Field label="Hire date" error={errors.hireDate}>
+          <Field label="Hire date" error={errors['hireDate'] || ''}>
             <Input
               type="date"
               value={form.hireDate}
@@ -205,7 +244,7 @@ export function EmployeeFormDialog({ open, onOpenChange, editing, onSaved }: Pro
             />
           </Field>
           <Field label="Gender">
-            <Select value={form.gender} onValueChange={(v) => set("gender", v as "M" | "F")}>
+            <Select value={form.gender || ''} onValueChange={(v) => set("gender", v as "M" | "F")}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

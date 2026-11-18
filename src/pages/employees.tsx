@@ -45,9 +45,19 @@ export function EmployeesPage() {
   const { options: factoryOptions, loading: factoriesLoading } = useFactoryOptions();
   const { employees, loading: employeeLoading, reload: employeeReload } = useEmployee();
   async function toggleActive(row: EmployeeRow) {
-    const next: EmploymentStatus = row.employmentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
-    await employeeService.setStatus(row.id, next);
-    toast.success(`${row.fullName} is now ${EMPLOYMENT_STATUS_LABEL[next]}`);
+    try {
+      const next: EmploymentStatus = row.employmentStatus === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+      await employeeService.setStatus(row.id, next);
+      toast.success(`${row.fullName} is now ${EMPLOYMENT_STATUS_LABEL[next]}`);
+      employeeReload();
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to update employee status";
+      toast.error(message);
+    }
   }
 
   function exportCsv() {
@@ -70,7 +80,7 @@ export function EmployeesPage() {
         r.fullName,
         r.departmentName,
         r.position,
-        r.factoryId,
+        r.factoryName,
         r.email,
         r.phone,
         r.employmentStatus,
@@ -108,8 +118,8 @@ export function EmployeesPage() {
     {
       key: "factory",
       header: "Factory",
-      render: (r) => (r.factoryId === "BD" ? "Binh Duong" : "Long An"),
-      sort: (r) => r.factoryId,
+      render: (r) => r.factoryName,
+      sort: (r) => r.factoryName,
     },
     { key: "email", header: "Email", render: (r) => <span className="text-xs">{r.email}</span> },
     {

@@ -44,6 +44,8 @@ export interface Employee {
   departmentName: string;
   position: string;
   factoryId: string;
+  factoryName: string;
+  factoryCode: string;
   email: string;
   phone: string;
   employmentStatus: EmploymentStatus;
@@ -51,6 +53,41 @@ export interface Employee {
   dateOfBirth: string;
   gender: "M" | "F";
 }
+
+export interface EmployeePayload {
+  fullName?: string;
+  departmentId?: string;
+  position?: string;
+  factoryId?: string;
+  email?: string;
+  phone?: string;
+  employmentStatus?: EmploymentStatus;
+  hireDate?: string;
+  dateOfBirth?: string;
+  gender?: "M" | "F";
+}
+
+export interface EmployeeUpdate {
+  id: string;
+  fullName?: string;
+  departmentId?: string;
+  position?: string;
+  factoryId?: string;
+  email?: string;
+  phone?: string;
+  employmentStatus?: EmploymentStatus;
+  hireDate?: string;
+  dateOfBirth?: string;
+  gender?: "M" | "F";
+}
+
+export interface EmployeeDetail {
+  employee: Employee;
+  qrCode: QrCode | null;
+  attendanceHistory: DailySummary[];
+  recentEvents: AttendanceTransaction[];
+}
+
 
 export type QrStatus = "ACTIVE" | "EXPIRED" | "REVOKED" | "SUSPENDED";
 
