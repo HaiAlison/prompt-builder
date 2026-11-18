@@ -25,18 +25,28 @@ import { QrBadge, TransactionBadge, EventTypeBadge } from "@/components/common/s
 import { EmployeeAvatar } from "@/components/common/employee-avatar";
 import { attendanceService } from "@/services/attendance.service";
 import { qrCodeService } from "@/services/qr-code.service";
-import { GATES } from "@/mocks/gates";
 import { useAppState } from "@/store/app-state";
 import { formatDateTime, EVENT_TYPE_LABEL, DENIAL_REASON_LABEL } from "@/utils/format";
 import type { AttendanceTransaction, EventType, GateStation, ScanResult } from "@/types";
 import { useEmployee } from "@/hooks/use-employee";
+import { useGate } from "@/hooks/use-gate";
 
 /**
  * Simulates a security scanner at a gate: pick a person + gate + event and the
  * service validates the QR exactly like the future backend will. Includes
  * one-click bad-scenario chips (expired/revoked/unknown/inactive employee).
  */
-export function ScanSimulatorDialog({ children, gates, defaultGateId, }: { children?: React.ReactNode, defaultGateId?: string, gates: GateStation[] }) {
+export interface ScanSimulatorDialogProps {
+  children?: React.ReactNode;
+  defaultGateId?: string;
+  gates?: GateStation[];
+}
+
+export function ScanSimulatorDialog({
+  children,
+  defaultGateId,
+  gates: propGates,
+}: ScanSimulatorDialogProps) {
   const { network, version } = useAppState();
   const [open, setOpen] = useState(false);
   const [employeeQuery, setEmployeeQuery] = useState("");
@@ -58,6 +68,8 @@ export function ScanSimulatorDialog({ children, gates, defaultGateId, }: { child
   }, [employeeQuery, employees?.results]);
 
   const selected = (employees?.results ?? []).find((e) => e.id === selectedEmployeeId);
+  const { gates: hookGates } = useGate();
+  const gates = propGates ?? hookGates;
 
   const scenarioChips: { label: string; employeeId: string | null; payload: string | null }[] = [
     { label: "Expired QR", employeeId: null, payload: "tmc://v1/bd/token-expired-sample" },

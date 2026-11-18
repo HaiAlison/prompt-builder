@@ -27,6 +27,7 @@ import { useAppState } from "@/store/app-state";
 import { useAsync } from "@/hooks/use-async";
 import { QR_STATUS_LABEL, formatDate } from "@/utils/format";
 import type { FactoryFilter, QrCode, QrStatus } from "@/types";
+import { useEmployee } from "@/hooks/use-employee";
 
 export function QrCodesPage() {
   const { factoryFilter: globalFactory, version } = useAppState();
@@ -43,18 +44,19 @@ export function QrCodesPage() {
     () => qrCodeService.list({ q, factoryId: factory, status: status as QrStatus | "ALL" }),
     [q, factory, status, version],
   );
+  const { employees } = useEmployee()
 
   const genMatches = useMemo(() => {
     const query = genQuery.trim().toLowerCase();
     if (!query) return [];
-    return (codes.data ?? [])
+    return (employees?.results ?? [])
       .filter(
-        (c) =>
-          c.employeeId.toLowerCase().includes(query) ||
-          c.employeeName.toLowerCase().includes(query),
+        (e) =>
+          e.code.toLowerCase().includes(query) ||
+          e.fullName.toLowerCase().includes(query),
       )
       .slice(0, 5);
-  }, [genQuery, codes.data]);
+  }, [genQuery, employees?.results]);
 
   async function generateFor(employeeId: string) {
     setBusy(true);
@@ -83,10 +85,10 @@ export function QrCodesPage() {
 
   const columns: Column<QrCode>[] = [
     {
-      key: "empId",
-      header: "Employee ID",
-      render: (r) => <span className="font-mono text-xs">{r.employeeId}</span>,
-      sort: (r) => r.employeeId,
+      key: "empCode",
+      header: "Employee Code",
+      render: (r) => <span className="font-mono text-xs">{r.employeeCode}</span>,
+      sort: (r) => r.employeeCode,
     },
     {
       key: "name",
@@ -95,10 +97,10 @@ export function QrCodesPage() {
       sort: (r) => r.employeeName,
     },
     {
-      key: "qrId",
-      header: "QR Code ID",
-      render: (r) => <span className="font-mono text-xs">{r.id}</span>,
-      sort: (r) => r.id,
+      key: "qrCode",
+      header: "QR Code",
+      render: (r) => <span className="font-mono text-xs">{r.code}</span>,
+      sort: (r) => r.code,
     },
     {
       key: "status",
@@ -181,7 +183,7 @@ export function QrCodesPage() {
 
       <DataTable
         columns={columns}
-        rows={codes.data ?? []}
+        rows={codes.data?.results ?? []}
         rowKey={(r) => r.id}
         loading={codes.loading}
         pageSize={10}
@@ -246,14 +248,14 @@ export function QrCodesPage() {
             )}
             {genMatches.map((m) => (
               <div
-                key={m.employeeId}
+                key={m.id}
                 className="flex items-center gap-2 border-b px-3 py-2 text-sm last:border-0"
               >
                 <span className="min-w-0 flex-1 truncate">
-                  <span className="font-medium">{m.employeeName}</span>
-                  <span className="ml-2 text-xs text-muted-foreground">{m.employeeId}</span>
+                  <span className="font-medium">{m.fullName}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">{m.code}</span>
                 </span>
-                <Button size="sm" disabled={busy} onClick={() => generateFor(m.employeeId)}>
+                <Button size="sm" disabled={busy} onClick={() => generateFor(m.id)}>
                   Generate
                 </Button>
               </div>

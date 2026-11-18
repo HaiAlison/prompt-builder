@@ -17,9 +17,9 @@ function delay<T>(value: T, ms = 90): Promise<T> {
 }
 
 export interface GateListParams {
-  q?: string;
-  factoryId?: FactoryFilter;
-  status?: GateStatus | "ALL";
+  q?: string | undefined;
+  factoryId?: FactoryFilter | undefined;
+  status?: GateStatus | "ALL" | undefined;
 }
 
 export interface GateDetail {
@@ -32,9 +32,9 @@ export interface GateDetail {
 
 export const gateService = {
   async list(params: GateListParams = {}): Promise<GateStation[]> {
-    const q = params.q?.trim().toLowerCase();
-    const rows = await api.get<IPaginatedResponse<GateStation>>('/gates', { params });
-    return delay(rows.results)
+    const rows = await api.get<IPaginatedResponse<GateStation> | GateStation[]>('/gates', { params });
+    const list = Array.isArray(rows) ? rows : (rows?.results ?? []);
+    return delay(list);
   },
 
   async getById(id: string): Promise<GateDetail | undefined> {

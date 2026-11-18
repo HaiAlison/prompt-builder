@@ -1,4 +1,4 @@
-import type { FactoryFilter, QrCode, QrStatus } from "@/types";
+import type { Employee, FactoryFilter, IPaginatedResponse, QrCode, QrStatus } from "@/types";
 import { QR_CODES, newQrPayload } from "@/mocks/qr-codes";
 import { EMPLOYEE_BY_ID } from "@/mocks/data";
 import { notifyDataChanged } from "./bus";
@@ -16,21 +16,8 @@ export interface QrListParams {
 }
 
 export const qrCodeService = {
-  async list(params: QrListParams = {}): Promise<QrCode[]> {
-    const q = params.q?.trim().toLowerCase();
-    let rows = QR_CODES;
-    if (params.factoryId && params.factoryId !== "ALL")
-      rows = rows.filter((r) => r.factoryId === params.factoryId);
-    if (params.status && params.status !== "ALL")
-      rows = rows.filter((r) => r.status === params.status);
-    if (q) {
-      rows = rows.filter(
-        (r) =>
-          r.employeeId.toLowerCase().includes(q) ||
-          r.employeeName.toLowerCase().includes(q) ||
-          r.id.toLowerCase().includes(q),
-      );
-    }
+  async list(params: QrListParams = {}): Promise<IPaginatedResponse<QrCode>> {
+    let rows = await api.get<IPaginatedResponse<QrCode>>("/qr-codes", { params });
     return delay(rows);
   },
 
@@ -46,36 +33,14 @@ export const qrCodeService = {
   },
   /** Issues a fresh code for an employee; previously active codes are revoked. */
   async generateForEmployee(employeeId: string): Promise<QrCode> {
-    const emp = EMPLOYEE_BY_ID.get(employeeId);
-    if (!emp) throw new Error("Employee not found");
-    for (const code of QR_CODES) {
-      if (code.employeeId === employeeId && code.status === "ACTIVE") code.status = "REVOKED";
-    }
-    const now = new Date();
-    const code: QrCode = {
-      id: `QR-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
-      employeeId,
-      employeeName: emp.fullName,
-      factoryId: emp.factoryId,
-      status: "ACTIVE",
-      createdAt: now.toISOString(),
-      expiresAt: new Date(
-        now.getTime() + DEFAULT_CONFIG.employeeQrValidityDays * 86_400_000,
-      ).toISOString(),
-      lastUsedAt: null,
-      payload: newQrPayload(),
-    };
-    QR_CODES.unshift(code);
+    const code = await api.post<QrCode>("/qr-codes/generate", { employeeId });
     notifyDataChanged();
     return delay(code, 400);
   },
 
-  async revoke(id: string): Promise<QrCode | undefined> {
-    const code = QR_CODES.find((r) => r.id === id);
-    if (code) {
-      code.status = "REVOKED";
-      notifyDataChanged();
-    }
+  async revoke(id: string): Promise<QrCode> {
+    const code = await api.post<QrCode>(`qr-codes/${id}/revoke`);
+    notifyDataChanged();
     return delay(code, 300);
   },
 

@@ -17,23 +17,20 @@ import { FilterSelect, PageHeader } from "@/components/common/filter-select";
 import { ScanSimulatorDialog } from "@/components/attendance/scan-simulator";
 import { gateService } from "@/services/gate.service";
 import { useAppState } from "@/store/app-state";
-import { useAsync } from "@/hooks/use-async";
+import { useGate } from "@/hooks/use-gate";
 import { useFactoryOptions } from "@/hooks/use-factory-options";
 import { dynamicDateFormat, formatDateTime } from "@/utils/format";
 import type { FactoryFilter, GateStation, GateStatus } from "@/types";
 
 export function GatesPage() {
-  const { factoryFilter: globalFactory, version } = useAppState();
+  const { factoryFilter: globalFactory } = useAppState();
   const [q, setQ] = useState("");
   const [factory, setFactory] = useState<FactoryFilter | "ALL">(globalFactory);
   const [status, setStatus] = useState<GateStatus | "ALL">("ALL");
 
   const { options: factoryOptions, loading: factoriesLoading } = useFactoryOptions();
 
-  const gates = useAsync(
-    () => gateService.list({ q, factoryId: factory, status }),
-    [q, factory, status, version],
-  );
+  const { gates, loading } = useGate({ q, factoryId: factory, status });
 
   async function handleSetStatus(gateId: string, newStatus: GateStatus) {
     try {
@@ -136,18 +133,18 @@ export function GatesPage() {
     },
   ];
 
-  const total = gates.data?.length ?? 0;
-  const onlineCount = gates.data?.filter((g) => g.status === "ONLINE").length ?? 0;
-  const offlineCount = gates.data?.filter((g) => g.status === "OFFLINE").length ?? 0;
+  const total = gates.length;
+  const onlineCount = gates.filter((g) => g.status === "ONLINE").length;
+  const offlineCount = gates.filter((g) => g.status === "OFFLINE").length;
   const maintenanceCount =
-    gates.data?.filter((g) => g.status === "MAINTENANCE").length ?? 0;
+    gates.filter((g) => g.status === "MAINTENANCE").length;
 
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Gate Stations"
         description="Monitor physical access gates, turnstiles, and QR barcode scanner telemetry"
-        actions={<ScanSimulatorDialog gates={gates.data} />}
+        actions={<ScanSimulatorDialog gates={gates} />}
       />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -198,8 +195,8 @@ export function GatesPage() {
 
       <DataTable
         columns={columns}
-        rows={gates.data ?? []}
-        loading={gates.loading}
+        rows={gates}
+        loading={loading}
         rowKey={(g) => g.id}
         emptyMessage="No gate stations found matching the filter."
       />

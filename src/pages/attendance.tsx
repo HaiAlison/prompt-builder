@@ -17,10 +17,10 @@ import { DenialBadge, EventTypeBadge, TransactionBadge } from "@/components/comm
 import { FilterSelect, PageHeader } from "@/components/common/filter-select";
 import { ScanSimulatorDialog } from "@/components/attendance/scan-simulator";
 import { attendanceService } from "@/services/attendance.service";
-import { gateService } from "@/services/gate.service";
 import { systemService } from "@/services/system.service";
 import { useAppState } from "@/store/app-state";
 import { useAsync } from "@/hooks/use-async";
+import { useGate } from "@/hooks/use-gate";
 import { downloadCsv } from "@/utils/csv";
 import {
   ATTENDANCE_STATUS_LABEL,
@@ -33,6 +33,8 @@ import {
   dynamicDateFormat,
 } from "@/utils/format";
 import type { AttendanceTransaction, DailySummary, EventType, TransactionStatus } from "@/types";
+import { useFactoryOptions } from "@/hooks/use-factory-options";
+import { useDepartment } from "@/hooks/use-department";
 
 export function AttendancePage() {
   const { factoryFilter: globalFactory, version } = useAppState();
@@ -48,8 +50,9 @@ export function AttendancePage() {
   const [detail, setDetail] = useState<AttendanceTransaction | null>(null);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
-  const gates = useAsync(() => gateService.list(), []);
-  const departments = useAsync(() => systemService.listDepartments(), [version]);
+  const { options: gateOptions } = useGate({ includeAll: true });
+  const { options: factoryOptions, loading: factoryLoading } = useFactoryOptions({ includeAll: true });
+  const { options: departmentOptions } = useDepartment({ includeAll: true, factoryId: factory });
   const transactions = useAsync(
     () =>
       attendanceService.listTransactions({
@@ -77,14 +80,6 @@ export function AttendancePage() {
   const sync = useAsync(
     () => Promise.all([attendanceService.listPendingSync(), attendanceService.syncStats()]),
     [version],
-  );
-
-  const gateOptions = useMemo(
-    () => [
-      { value: "ALL", label: "All gates" },
-      ...(gates.data ?? []).map((g) => ({ value: g.id, label: `${g.id} · ${g.name}` })),
-    ],
-    [gates.data],
   );
 
   function exportTransactions() {
@@ -231,7 +226,7 @@ export function AttendancePage() {
             <Button variant="outline" onClick={exportTransactions}>
               <Download className="h-4 w-4" /> Export CSV
             </Button>
-            <ScanSimulatorDialog gates={gates.data || []} />
+            <ScanSimulatorDialog defaultGateId={gateId} />
           </>
         }
       />
@@ -267,22 +262,14 @@ export function AttendancePage() {
                   label="Factory"
                   value={factory}
                   onChange={(v) => setFactory(v as typeof factory)}
-                  options={[
-                    { value: "ALL", label: "All factories" },
-                    { value: "BD", label: "Binh Duong" },
-                    { value: "LA", label: "Long An" },
-                  ]}
+                  options={factoryOptions}
+                  disabled={factoryLoading}
                 />
                 <FilterSelect
                   label="Department"
                   value={department}
                   onChange={setDepartment}
-                  options={[
-                    { value: "ALL", label: "All departments" },
-                    ...(departments.data ?? [])
-                      .filter((d) => factory === "ALL" || d.factoryId === factory)
-                      .map((d) => ({ value: d.id, label: d.name })),
-                  ]}
+                  options={departmentOptions}
                 />
                 <FilterSelect
                   label="Gate station"
@@ -360,12 +347,7 @@ export function AttendancePage() {
               label="Department"
               value={department}
               onChange={setDepartment}
-              options={[
-                { value: "ALL", label: "All departments" },
-                ...(departments.data ?? [])
-                  .filter((d) => factory === "ALL" || d.factoryId === factory)
-                  .map((d) => ({ value: d.id, label: d.name })),
-              ]}
+              options={departmentOptions}
             />
             <div>
               <p className="mb-1.5 text-xs font-medium text-muted-foreground">Search</p>

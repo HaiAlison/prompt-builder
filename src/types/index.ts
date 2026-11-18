@@ -56,7 +56,9 @@ export type QrStatus = "ACTIVE" | "EXPIRED" | "REVOKED" | "SUSPENDED";
 
 export interface QrCode {
   id: string; // e.g. QR-A1B2C3
+  code: string;
   employeeId: string;
+  employeeCode: string;
   employeeName: string;
   factoryId: string;
   status: QrStatus;

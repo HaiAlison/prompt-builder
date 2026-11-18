@@ -48,7 +48,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         email: me.email,
         role: me.role,
         status: me.status,
-        linkedEmployeeId: me.linkedEmployeeId ?? undefined,
+        linkedEmployeeId: me.linkedEmployeeId,
         lastLogin: new Date().toISOString(),
       });
     } catch {
