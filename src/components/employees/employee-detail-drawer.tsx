@@ -61,7 +61,7 @@ export function EmployeeDetailDrawer({ employee, open, onOpenChange }: Props) {
                 <div>
                   <SheetTitle className="text-base">{emp.fullName}</SheetTitle>
                   <SheetDescription className="text-xs">
-                    {emp.id} · {emp.departmentName} · {emp.position}
+                    {emp.code} · {emp.departmentName} · {emp.position}
                   </SheetDescription>
                 </div>
                 <div className="ml-auto flex flex-col items-end gap-1">
@@ -82,7 +82,7 @@ export function EmployeeDetailDrawer({ employee, open, onOpenChange }: Props) {
               <ScrollArea className="mt-4 max-h-[60vh] pr-3">
                 <TabsContent value="profile" className="mt-0">
                   <InfoBlock title="Personal information">
-                    <Info label="Employee ID" value={emp.id} />
+                    <Info label="Employee Code" value={emp.code} />
                     <Info label="Gender" value={emp.gender === "M" ? "Male" : "Female"} />
                     <Info label="Date of birth" value={formatDate(emp.dateOfBirth)} />
                     <Info label="Email" value={emp.email} />
@@ -90,10 +90,7 @@ export function EmployeeDetailDrawer({ employee, open, onOpenChange }: Props) {
                   </InfoBlock>
                   <Separator className="my-4" />
                   <InfoBlock title="Employment information">
-                    <Info
-                      label="Factory"
-                      value={emp.factoryId === "BD" ? "Binh Duong" : "Long An"}
-                    />
+                    <Info label="Factory" value={emp.factoryName} />
                     <Info label="Department" value={emp.departmentName} />
                     <Info label="Position" value={emp.position} />
                     <Info label="Status" value={EMPLOYMENT_STATUS_LABEL[emp.employmentStatus]} />

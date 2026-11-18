@@ -1,4 +1,4 @@
-import { IPaginatedResponse, type Employee, type EmploymentStatus, type FactoryFilter, type QrStatus } from "@/types";
+import { EmployeeDetail, EmployeePayload, IPaginatedResponse, type Employee, type EmploymentStatus, type FactoryFilter, type QrStatus } from "@/types";
 import { EMPLOYEE_BY_ID, EMPLOYEES } from "@/mocks/data";
 import { QR_BY_EMPLOYEE } from "@/mocks/qr-codes";
 import { notifyDataChanged } from "./bus";
@@ -30,35 +30,19 @@ export const employeeService = {
     return delay(rows);
   },
 
-  async getById(id: string) {
-    const emp = EMPLOYEE_BY_ID.get(id);
-    if (!emp) throw new Error("Employee not found");
-    return delay({
-      employee: toRow(emp),
-      qrCode: QR_BY_EMPLOYEE.get(id) ?? null,
-      attendanceHistory: getEmployeeDailySummaries(id, 14),
-      recentEvents: [] as import("@/types").AttendanceTransaction[],
-    });
+  async getById(id: string): Promise<EmployeeDetail> {
+    let res = await api.get<EmployeeDetail>(`/employees/${id}`);
+    return delay(res);
   },
 
-  async create(input: Omit<Employee, "id">): Promise<Employee> {
-    const factoryId = input.factoryId;
-    const seq =
-      EMPLOYEES.filter((e) => e.factoryId === factoryId).reduce((max, e) => {
-        const n = Number(e.id.split("-")[2]);
-        return Number.isFinite(n) ? Math.max(max, n) : max;
-      }, 0) + 1;
-    const emp: Employee = { ...input, id: `TMC-${factoryId}-${String(seq).padStart(4, "0")}` };
-    notifyDataChanged();
-    return delay(emp, 350);
+  async create(input: EmployeePayload): Promise<Employee> {
+    let res = await api.post<Employee>('/employees', input);
+    return delay(res, 350);
   },
 
-  async update(id: string, patch: Partial<Employee>): Promise<Employee> {
-    const emp = EMPLOYEE_BY_ID.get(id);
-    if (!emp) throw new Error("Employee not found");
-    Object.assign(emp, patch);
-    notifyDataChanged();
-    return delay(emp, 250);
+  async update(id: string, patch: Partial<EmployeePayload>): Promise<Employee> {
+    let res = await api.patch<Employee>(`/employees/${id}`, patch);
+    return delay(res, 250);
   },
 
   async setStatus(id: string, employmentStatus: EmploymentStatus): Promise<Employee> {
